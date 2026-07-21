@@ -1,0 +1,157 @@
+{
+  "schema_version": "1.0.0",
+  "policy_id": "POL-LAB-ACCESS",
+  "domain": "laboratory",
+  "version": "1.0",
+  "title": "Synthetic Laboratory Access and Equipment Policy",
+  "effective_at": "2024-01-01T00:00:00Z",
+  "expires_at": "2024-07-01T00:00:00Z",
+  "supersedes": null,
+  "scope": "Shared instruments and controlled lab rooms in Facility North.",
+  "definitions": {
+    "calibration_valid": "Instrument calibration within the documented validity window.",
+    "after_hours": "Use outside 07:00-19:00 local facility time."
+  },
+  "clauses": [
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "LAB-1.0-TRAIN",
+      "text": "Users must hold current instrument-specific training before access.",
+      "rule_type": "requirement",
+      "conditions": [],
+      "required_fields": [
+        "training_record"
+      ],
+      "expected_action": "inspect_evidence",
+      "severity": "high",
+      "exception_ids": [],
+      "tags": [
+        "training"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "LAB-1.0-CAL",
+      "text": "Instrument calibration must be valid at the reservation time.",
+      "rule_type": "requirement",
+      "conditions": [],
+      "required_fields": [
+        "calibration_certificate"
+      ],
+      "expected_action": "inspect_evidence",
+      "severity": "high",
+      "exception_ids": [],
+      "tags": [
+        "calibration"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "LAB-1.0-RESERVE",
+      "text": "A confirmed reservation is required for scheduled instrument use.",
+      "rule_type": "requirement",
+      "conditions": [],
+      "required_fields": [
+        "reservation"
+      ],
+      "expected_action": "inspect_evidence",
+      "severity": "medium",
+      "exception_ids": [],
+      "tags": [
+        "reservation"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "LAB-1.0-AFTER",
+      "text": "After-hours use requires supervisor approval.",
+      "rule_type": "escalation",
+      "conditions": [
+        "after_hours==true"
+      ],
+      "required_fields": [],
+      "expected_action": "create_human_review",
+      "severity": "high",
+      "exception_ids": [],
+      "tags": [
+        "after_hours"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "LAB-1.0-QC-FAIL",
+      "text": "Failed quality-control checks deny equipment access.",
+      "rule_type": "prohibition",
+      "conditions": [
+        "qc_failed==true"
+      ],
+      "required_fields": [],
+      "expected_action": "deny_equipment_access",
+      "severity": "critical",
+      "exception_ids": [],
+      "tags": [
+        "qc"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "LAB-1.0-APPROVE",
+      "text": "Approve access only when training, calibration, and reservation checks pass.",
+      "rule_type": "permission",
+      "conditions": [],
+      "required_fields": [],
+      "expected_action": "approve_equipment_access",
+      "severity": "medium",
+      "exception_ids": [],
+      "tags": [
+        "approve"
+      ]
+    }
+  ],
+  "required_evidence": [
+    "training_record",
+    "calibration_certificate",
+    "reservation"
+  ],
+  "permitted_actions": [
+    "inspect_case",
+    "inspect_evidence",
+    "retrieve_policy",
+    "search_policy_clauses",
+    "approve_equipment_access",
+    "deny_equipment_access",
+    "create_human_review",
+    "finalize_case"
+  ],
+  "prohibited_actions": [
+    "alter_evidence",
+    "release_item"
+  ],
+  "exceptions": [
+    {
+      "schema_version": "1.0.0",
+      "exception_id": "LAB-EX-MAINT",
+      "text": "Maintenance engineers may access during maintenance windows without reservation.",
+      "conditions": [
+        "role==maintenance",
+        "maintenance_window==true"
+      ],
+      "requires_approval": false
+    }
+  ],
+  "escalation_conditions": [
+    "after_hours==true",
+    "access_level_insufficient==true"
+  ],
+  "examples": [
+    "Trained user with valid calibration and reservation may be approved.",
+    "QC failure requires denial even with a reservation."
+  ],
+  "change_summary": "Initial synthetic lab access policy.",
+  "change_log": [
+    "2024-01-01: Initial v1.0 published."
+  ],
+  "source_uri": "synthetic://policyshift/laboratory/1.0",
+  "checksum": "6132236edf27b80e19ac87803debf814701a57ba045e015d933dc29f0cdca841",
+  "metadata": {}
+}

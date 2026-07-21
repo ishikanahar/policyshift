@@ -1,0 +1,31 @@
+{
+  "description": "Named exception referenced by clauses.",
+  "properties": {
+    "exception_id": {
+      "title": "Exception Id",
+      "type": "string"
+    },
+    "text": {
+      "title": "Text",
+      "type": "string"
+    },
+    "conditions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Conditions",
+      "type": "array"
+    },
+    "requires_approval": {
+      "default": false,
+      "title": "Requires Approval",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "exception_id",
+    "text"
+  ],
+  "title": "PolicyException",
+  "type": "object"
+}

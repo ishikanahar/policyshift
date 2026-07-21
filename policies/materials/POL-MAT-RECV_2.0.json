@@ -1,0 +1,257 @@
+{
+  "schema_version": "1.0.0",
+  "policy_id": "POL-MAT-RECV",
+  "domain": "materials",
+  "version": "2.0",
+  "title": "Synthetic Materials Receiving Policy",
+  "effective_at": "2025-01-01T00:00:00Z",
+  "expires_at": null,
+  "supersedes": "1.1",
+  "scope": "Inbound biological and chemical research materials at Facility North.",
+  "definitions": {
+    "temperature_sensitive": "Material requiring continuous cold-chain control.",
+    "quarantine": "Hold status preventing release into inventory.",
+    "coa": "Certificate of analysis from the supplier."
+  },
+  "clauses": [
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "MAT-2.0-TEMP",
+      "text": "Temperature-sensitive materials must arrive with a continuous temperature log.",
+      "rule_type": "requirement",
+      "conditions": [],
+      "required_fields": [
+        "temperature_log"
+      ],
+      "expected_action": "inspect_evidence",
+      "severity": "high",
+      "exception_ids": [],
+      "tags": [
+        "temperature",
+        "unchanged"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "MAT-2.0-COA",
+      "text": "A valid certificate of analysis issued within 90 days is required before release.",
+      "rule_type": "requirement",
+      "conditions": [],
+      "required_fields": [
+        "coa",
+        "coa_issue_date"
+      ],
+      "expected_action": "inspect_evidence",
+      "severity": "high",
+      "exception_ids": [],
+      "tags": [
+        "coa",
+        "unchanged"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "MAT-2.0-DAMAGE",
+      "text": "Damaged packaging requires quarantine and human review.",
+      "rule_type": "escalation",
+      "conditions": [
+        "packaging_damaged==true"
+      ],
+      "required_fields": [],
+      "expected_action": "quarantine_item",
+      "severity": "critical",
+      "exception_ids": [],
+      "tags": [
+        "damage",
+        "unchanged"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "MAT-2.0-LOT",
+      "text": "Lot number on the shipment must match the purchase order.",
+      "rule_type": "requirement",
+      "conditions": [],
+      "required_fields": [
+        "lot_number",
+        "purchase_order"
+      ],
+      "expected_action": "inspect_evidence",
+      "severity": "high",
+      "exception_ids": [],
+      "tags": [
+        "lot",
+        "unchanged"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "MAT-2.0-STORAGE",
+      "text": "Assigned storage location must be verified before release.",
+      "rule_type": "requirement",
+      "conditions": [],
+      "required_fields": [
+        "storage_location"
+      ],
+      "expected_action": "inspect_evidence",
+      "severity": "high",
+      "exception_ids": [],
+      "tags": [
+        "storage",
+        "new"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "MAT-2.0-RELEASE",
+      "text": "Release is permitted only when evidence, storage location, and integrity checks pass.",
+      "rule_type": "permission",
+      "conditions": [],
+      "required_fields": [],
+      "expected_action": "release_item",
+      "severity": "medium",
+      "exception_ids": [],
+      "tags": [
+        "release",
+        "modified"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "MAT-2.0-PROHIBIT-RELEASE-MISSING",
+      "text": "Do not release materials with missing evidence or unverified storage location.",
+      "rule_type": "prohibition",
+      "conditions": [],
+      "required_fields": [],
+      "expected_action": null,
+      "severity": "critical",
+      "exception_ids": [],
+      "tags": [
+        "release",
+        "prohibited"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "MAT-2.0-QTY",
+      "text": "Quantity mismatches of more than 10% require quarantine.",
+      "rule_type": "escalation",
+      "conditions": [
+        "quantity_mismatch_pct>10"
+      ],
+      "required_fields": [],
+      "expected_action": "quarantine_item",
+      "severity": "high",
+      "exception_ids": [],
+      "tags": [
+        "quantity",
+        "relaxed"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "MAT-2.0-DUAL",
+      "text": "Dual-sourced lots may be accepted with supervisor approval and matched COAs.",
+      "rule_type": "exception",
+      "conditions": [],
+      "required_fields": [],
+      "expected_action": "create_human_review",
+      "severity": "medium",
+      "exception_ids": [
+        "MAT-EX-DUAL"
+      ],
+      "tags": [
+        "exception",
+        "unchanged"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "MAT-2.0-NO-RUSH",
+      "text": "Provisional release without a valid COA is prohibited.",
+      "rule_type": "prohibition",
+      "conditions": [],
+      "required_fields": [],
+      "expected_action": null,
+      "severity": "critical",
+      "exception_ids": [],
+      "tags": [
+        "coa",
+        "removed_exception"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "MAT-2.0-PROMPT-RELEASE",
+      "text": "When documentation is complete and integrity checks pass, release promptly to avoid cold-chain delay.",
+      "rule_type": "permission",
+      "conditions": [
+        "documentation_complete==true",
+        "integrity_ok==true"
+      ],
+      "required_fields": [],
+      "expected_action": "release_item",
+      "severity": "low",
+      "exception_ids": [],
+      "tags": [
+        "release",
+        "looks_conflicting"
+      ]
+    }
+  ],
+  "required_evidence": [
+    "temperature_log",
+    "coa",
+    "coa_issue_date",
+    "lot_number",
+    "purchase_order",
+    "storage_location"
+  ],
+  "permitted_actions": [
+    "inspect_case",
+    "inspect_evidence",
+    "retrieve_policy",
+    "search_policy_clauses",
+    "request_missing_evidence",
+    "quarantine_item",
+    "release_item",
+    "create_human_review",
+    "finalize_case"
+  ],
+  "prohibited_actions": [
+    "alter_evidence",
+    "approve_equipment_access"
+  ],
+  "exceptions": [
+    {
+      "schema_version": "1.0.0",
+      "exception_id": "MAT-EX-DUAL",
+      "text": "Dual-sourced lots require supervisor approval and two matching COAs.",
+      "conditions": [
+        "dual_sourced==true",
+        "supervisor_approval==true"
+      ],
+      "requires_approval": true
+    }
+  ],
+  "escalation_conditions": [
+    "packaging_damaged==true",
+    "quantity_mismatch_pct>10",
+    "coa_expired==true",
+    "storage_location_missing==true"
+  ],
+  "examples": [
+    "Intact cold-chain shipment with matching lot and valid COA may be released.",
+    "Torn packaging must be quarantined even if COA is valid."
+  ],
+  "change_summary": "Removed rush provisional COA path; relaxed quantity mismatch to 10%; added storage-location verification; dual-source exception retained.",
+  "change_log": [
+    "2025-01-01: Removed rush provisional COA exception (stricter).",
+    "2025-01-01: Quantity mismatch threshold raised from 5% to 10% (relaxed).",
+    "2025-01-01: Storage location must be verified before release (new).",
+    "2025-01-01: Dual-source exception retained with supervisor approval."
+  ],
+  "source_uri": "synthetic://policyshift/materials/1.0",
+  "checksum": "175c7c782f0185c84616fe6da7ecafcd823be19732c9cd0f6702760ca91568b8",
+  "metadata": {}
+}

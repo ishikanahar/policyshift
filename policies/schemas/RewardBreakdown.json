@@ -1,0 +1,30 @@
+{
+  "description": "Decomposable reward components for a trajectory.",
+  "properties": {
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "PolicyShift data schema version",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "components": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "title": "Components",
+      "type": "object"
+    },
+    "total": {
+      "default": 0.0,
+      "title": "Total",
+      "type": "number"
+    },
+    "config_name": {
+      "default": "balanced_full",
+      "title": "Config Name",
+      "type": "string"
+    }
+  },
+  "title": "RewardBreakdown",
+  "type": "object"
+}

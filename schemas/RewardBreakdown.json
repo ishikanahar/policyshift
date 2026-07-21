@@ -1,0 +1,24 @@
+{
+  "description": "Decomposable reward components for a trajectory.",
+  "properties": {
+    "components": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "title": "Components",
+      "type": "object"
+    },
+    "total": {
+      "default": 0.0,
+      "title": "Total",
+      "type": "number"
+    },
+    "config_name": {
+      "default": "balanced_full",
+      "title": "Config Name",
+      "type": "string"
+    }
+  },
+  "title": "RewardBreakdown",
+  "type": "object"
+}

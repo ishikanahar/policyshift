@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: If you use PolicyShift, please cite this repository.
+title: "PolicyShift: Continual Post-Training for Agents Operating Under Evolving Enterprise Policies"
+version: 0.1.0
+date-released: "2026-07-20"
+license: Apache-2.0
+authors:
+  - name: PolicyShift Contributors
+abstract: >
+  PolicyShift is a synthetic research environment and post-training study of how
+  small tool-using language models adapt to evolving enterprise policies using
+  SFT, distillation, DPO, and verifier-guided RL.
+keywords:
+  - continual learning
+  - LLM post-training
+  - tool use
+  - policy compliance
+  - preference optimization

@@ -1,0 +1,304 @@
+{
+  "$defs": {
+    "Domain": {
+      "enum": [
+        "materials",
+        "laboratory",
+        "ai_governance"
+      ],
+      "title": "Domain",
+      "type": "string"
+    },
+    "PolicyClause": {
+      "description": "A single enforceable or definitional clause within a policy document.",
+      "properties": {
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "PolicyShift data schema version",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "clause_id": {
+          "title": "Clause Id",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "rule_type": {
+          "$ref": "#/$defs/RuleType"
+        },
+        "conditions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Conditions",
+          "type": "array"
+        },
+        "required_fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Required Fields",
+          "type": "array"
+        },
+        "expected_action": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Action"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity",
+          "default": "medium"
+        },
+        "exception_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Exception Ids",
+          "type": "array"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        }
+      },
+      "required": [
+        "clause_id",
+        "text",
+        "rule_type"
+      ],
+      "title": "PolicyClause",
+      "type": "object"
+    },
+    "PolicyException": {
+      "description": "Named exception referenced by clauses.",
+      "properties": {
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "PolicyShift data schema version",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "exception_id": {
+          "title": "Exception Id",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "conditions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Conditions",
+          "type": "array"
+        },
+        "requires_approval": {
+          "default": false,
+          "title": "Requires Approval",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "exception_id",
+        "text"
+      ],
+      "title": "PolicyException",
+      "type": "object"
+    },
+    "RuleType": {
+      "enum": [
+        "requirement",
+        "permission",
+        "prohibition",
+        "exception",
+        "escalation",
+        "definition"
+      ],
+      "title": "RuleType",
+      "type": "string"
+    },
+    "Severity": {
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "title": "Severity",
+      "type": "string"
+    }
+  },
+  "description": "Versioned enterprise policy document (synthetic).",
+  "properties": {
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "PolicyShift data schema version",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "policy_id": {
+      "title": "Policy Id",
+      "type": "string"
+    },
+    "domain": {
+      "$ref": "#/$defs/Domain"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "effective_at": {
+      "format": "date-time",
+      "title": "Effective At",
+      "type": "string"
+    },
+    "expires_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expires At"
+    },
+    "supersedes": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Supersedes"
+    },
+    "scope": {
+      "title": "Scope",
+      "type": "string"
+    },
+    "definitions": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Definitions",
+      "type": "object"
+    },
+    "clauses": {
+      "items": {
+        "$ref": "#/$defs/PolicyClause"
+      },
+      "title": "Clauses",
+      "type": "array"
+    },
+    "required_evidence": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Required Evidence",
+      "type": "array"
+    },
+    "permitted_actions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Permitted Actions",
+      "type": "array"
+    },
+    "prohibited_actions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Prohibited Actions",
+      "type": "array"
+    },
+    "exceptions": {
+      "items": {
+        "$ref": "#/$defs/PolicyException"
+      },
+      "title": "Exceptions",
+      "type": "array"
+    },
+    "escalation_conditions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Escalation Conditions",
+      "type": "array"
+    },
+    "examples": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Examples",
+      "type": "array"
+    },
+    "change_summary": {
+      "default": "",
+      "title": "Change Summary",
+      "type": "string"
+    },
+    "change_log": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Change Log",
+      "type": "array"
+    },
+    "source_uri": {
+      "default": "synthetic://policyshift",
+      "title": "Source Uri",
+      "type": "string"
+    },
+    "checksum": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Checksum"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    }
+  },
+  "required": [
+    "policy_id",
+    "domain",
+    "version",
+    "title",
+    "effective_at",
+    "scope",
+    "clauses"
+  ],
+  "title": "PolicyDocument",
+  "type": "object"
+}

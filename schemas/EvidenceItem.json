@@ -1,0 +1,36 @@
+{
+  "description": "Inspectable evidence attached to a case.",
+  "properties": {
+    "evidence_type": {
+      "title": "Evidence Type",
+      "type": "string"
+    },
+    "present": {
+      "title": "Present",
+      "type": "boolean"
+    },
+    "content": {
+      "additionalProperties": true,
+      "title": "Content",
+      "type": "object"
+    },
+    "notes": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Notes"
+    }
+  },
+  "required": [
+    "evidence_type",
+    "present"
+  ],
+  "title": "EvidenceItem",
+  "type": "object"
+}

@@ -1,0 +1,101 @@
+{
+  "$defs": {
+    "FailureCategory": {
+      "enum": [
+        "stale_policy_selected",
+        "correct_policy_retrieved_but_ignored",
+        "incorrect_clause_selected",
+        "missing_evidence_overlooked",
+        "invalid_tool",
+        "invalid_tool_arguments",
+        "unsupported_final_answer",
+        "hallucinated_evidence",
+        "hallucinated_policy",
+        "premature_action",
+        "unsafe_action",
+        "unnecessary_escalation",
+        "excessive_refusal",
+        "excessive_tool_use",
+        "reward_hacking",
+        "correct_result_through_invalid_reasoning_path",
+        "retrieval_failure",
+        "version_boundary_confusion",
+        "exception_handling_failure"
+      ],
+      "title": "FailureCategory",
+      "type": "string"
+    },
+    "PreferenceSource": {
+      "enum": [
+        "success_vs_failure",
+        "current_vs_stale",
+        "grounded_vs_unsupported",
+        "safe_vs_unsafe",
+        "efficient_vs_verbose",
+        "teacher_vs_student",
+        "manual"
+      ],
+      "title": "PreferenceSource",
+      "type": "string"
+    }
+  },
+  "description": "Chosen/rejected trajectory pair for preference optimization.",
+  "properties": {
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "PolicyShift data schema version",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "pair_id": {
+      "title": "Pair Id",
+      "type": "string"
+    },
+    "case_id": {
+      "title": "Case Id",
+      "type": "string"
+    },
+    "chosen_trajectory_id": {
+      "title": "Chosen Trajectory Id",
+      "type": "string"
+    },
+    "rejected_trajectory_id": {
+      "title": "Rejected Trajectory Id",
+      "type": "string"
+    },
+    "preference_reason": {
+      "title": "Preference Reason",
+      "type": "string"
+    },
+    "reward_margin": {
+      "title": "Reward Margin",
+      "type": "number"
+    },
+    "failure_categories": {
+      "items": {
+        "$ref": "#/$defs/FailureCategory"
+      },
+      "title": "Failure Categories",
+      "type": "array"
+    },
+    "source": {
+      "$ref": "#/$defs/PreferenceSource"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    }
+  },
+  "required": [
+    "pair_id",
+    "case_id",
+    "chosen_trajectory_id",
+    "rejected_trajectory_id",
+    "preference_reason",
+    "reward_margin",
+    "source"
+  ],
+  "title": "PreferencePair",
+  "type": "object"
+}

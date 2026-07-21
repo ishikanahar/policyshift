@@ -1,0 +1,9 @@
+# Phase 1 smoke configuration (CPU-only)
+seed: 42
+n_cases: 120
+policy_export_dir: policies
+cases_export_dir: data/generated/cases
+resolve_with_oracle: true
+notes: >
+  Phase 1 validates the functional environment only.
+  No model training is performed.

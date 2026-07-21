@@ -1,0 +1,81 @@
+{
+  "description": "Observable agent step with a short structured decision summary (no hidden CoT).",
+  "properties": {
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "PolicyShift data schema version",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "step_number": {
+      "title": "Step Number",
+      "type": "integer"
+    },
+    "thought_summary": {
+      "description": "Short structured rationale summary; not unrestricted chain-of-thought.",
+      "title": "Thought Summary",
+      "type": "string"
+    },
+    "tool_name": {
+      "title": "Tool Name",
+      "type": "string"
+    },
+    "arguments": {
+      "additionalProperties": true,
+      "title": "Arguments",
+      "type": "object"
+    },
+    "tool_output": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tool Output"
+    },
+    "policy_citations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Policy Citations",
+      "type": "array"
+    },
+    "timestamp": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Timestamp"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Error"
+    }
+  },
+  "required": [
+    "step_number",
+    "thought_summary",
+    "tool_name"
+  ],
+  "title": "AgentAction",
+  "type": "object"
+}

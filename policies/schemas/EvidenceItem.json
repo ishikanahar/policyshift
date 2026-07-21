@@ -1,0 +1,42 @@
+{
+  "description": "Inspectable evidence attached to a case.",
+  "properties": {
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "PolicyShift data schema version",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "evidence_type": {
+      "title": "Evidence Type",
+      "type": "string"
+    },
+    "present": {
+      "title": "Present",
+      "type": "boolean"
+    },
+    "content": {
+      "additionalProperties": true,
+      "title": "Content",
+      "type": "object"
+    },
+    "notes": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Notes"
+    }
+  },
+  "required": [
+    "evidence_type",
+    "present"
+  ],
+  "title": "EvidenceItem",
+  "type": "object"
+}

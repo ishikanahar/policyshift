@@ -1,0 +1,180 @@
+{
+  "schema_version": "1.0.0",
+  "policy_id": "POL-MAT-RECV",
+  "domain": "materials",
+  "version": "1.0",
+  "title": "Synthetic Materials Receiving Policy",
+  "effective_at": "2024-01-01T00:00:00Z",
+  "expires_at": "2024-07-01T00:00:00Z",
+  "supersedes": null,
+  "scope": "Inbound biological and chemical research materials at Facility North.",
+  "definitions": {
+    "temperature_sensitive": "Material requiring continuous cold-chain control.",
+    "quarantine": "Hold status preventing release into inventory.",
+    "coa": "Certificate of analysis from the supplier."
+  },
+  "clauses": [
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "MAT-1.0-TEMP",
+      "text": "Temperature-sensitive materials must arrive with a continuous temperature log.",
+      "rule_type": "requirement",
+      "conditions": [],
+      "required_fields": [
+        "temperature_log"
+      ],
+      "expected_action": "inspect_evidence",
+      "severity": "high",
+      "exception_ids": [],
+      "tags": [
+        "temperature",
+        "evidence"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "MAT-1.0-COA",
+      "text": "A valid certificate of analysis is required before release.",
+      "rule_type": "requirement",
+      "conditions": [],
+      "required_fields": [
+        "coa"
+      ],
+      "expected_action": "inspect_evidence",
+      "severity": "high",
+      "exception_ids": [],
+      "tags": [
+        "coa",
+        "evidence"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "MAT-1.0-DAMAGE",
+      "text": "Damaged packaging requires quarantine and human review.",
+      "rule_type": "escalation",
+      "conditions": [
+        "packaging_damaged==true"
+      ],
+      "required_fields": [],
+      "expected_action": "quarantine_item",
+      "severity": "critical",
+      "exception_ids": [],
+      "tags": [
+        "damage",
+        "quarantine"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "MAT-1.0-LOT",
+      "text": "Lot number on the shipment must match the purchase order.",
+      "rule_type": "requirement",
+      "conditions": [],
+      "required_fields": [
+        "lot_number",
+        "purchase_order"
+      ],
+      "expected_action": "inspect_evidence",
+      "severity": "high",
+      "exception_ids": [],
+      "tags": [
+        "lot"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "MAT-1.0-RELEASE",
+      "text": "Release is permitted only when all required evidence is present and undamaged.",
+      "rule_type": "permission",
+      "conditions": [],
+      "required_fields": [],
+      "expected_action": "release_item",
+      "severity": "medium",
+      "exception_ids": [],
+      "tags": [
+        "release"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "MAT-1.0-PROHIBIT-RELEASE-MISSING",
+      "text": "Do not release materials with missing COA or temperature log.",
+      "rule_type": "prohibition",
+      "conditions": [],
+      "required_fields": [],
+      "expected_action": null,
+      "severity": "critical",
+      "exception_ids": [],
+      "tags": [
+        "release",
+        "prohibited"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "MAT-1.0-QTY",
+      "text": "Quantity mismatches of more than 5% require quarantine.",
+      "rule_type": "escalation",
+      "conditions": [
+        "quantity_mismatch_pct>5"
+      ],
+      "required_fields": [],
+      "expected_action": "quarantine_item",
+      "severity": "high",
+      "exception_ids": [],
+      "tags": [
+        "quantity"
+      ]
+    }
+  ],
+  "required_evidence": [
+    "temperature_log",
+    "coa",
+    "lot_number",
+    "purchase_order"
+  ],
+  "permitted_actions": [
+    "inspect_case",
+    "inspect_evidence",
+    "retrieve_policy",
+    "search_policy_clauses",
+    "request_missing_evidence",
+    "quarantine_item",
+    "release_item",
+    "create_human_review",
+    "finalize_case"
+  ],
+  "prohibited_actions": [
+    "alter_evidence",
+    "approve_equipment_access"
+  ],
+  "exceptions": [
+    {
+      "schema_version": "1.0.0",
+      "exception_id": "MAT-EX-RUSH",
+      "text": "Rush shipments may proceed with provisional COA if director approval is logged.",
+      "conditions": [
+        "rush==true",
+        "director_approval==true"
+      ],
+      "requires_approval": true
+    }
+  ],
+  "escalation_conditions": [
+    "packaging_damaged==true",
+    "quantity_mismatch_pct>5",
+    "coa_expired==true"
+  ],
+  "examples": [
+    "Intact cold-chain shipment with matching lot and valid COA may be released.",
+    "Torn packaging must be quarantined even if COA is valid."
+  ],
+  "change_summary": "Initial synthetic receiving policy.",
+  "change_log": [
+    "2024-01-01: Initial v1.0 published."
+  ],
+  "source_uri": "synthetic://policyshift/materials/1.0",
+  "checksum": "4933901994e8904ea326ce295ed4f74bd7c6486c52738ff3286ba6f690021ba9",
+  "metadata": {}
+}

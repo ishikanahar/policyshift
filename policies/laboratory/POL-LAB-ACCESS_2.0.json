@@ -1,0 +1,201 @@
+{
+  "schema_version": "1.0.0",
+  "policy_id": "POL-LAB-ACCESS",
+  "domain": "laboratory",
+  "version": "2.0",
+  "title": "Synthetic Laboratory Access and Equipment Policy",
+  "effective_at": "2025-01-01T00:00:00Z",
+  "expires_at": null,
+  "supersedes": "1.1",
+  "scope": "Shared instruments and controlled lab rooms in Facility North.",
+  "definitions": {
+    "calibration_valid": "Instrument calibration within the documented validity window.",
+    "after_hours": "Use outside 07:00-19:00 local facility time."
+  },
+  "clauses": [
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "LAB-2.0-TRAIN",
+      "text": "Users must hold current instrument-specific training before access.",
+      "rule_type": "requirement",
+      "conditions": [],
+      "required_fields": [
+        "training_record"
+      ],
+      "expected_action": "inspect_evidence",
+      "severity": "high",
+      "exception_ids": [],
+      "tags": [
+        "training",
+        "unchanged"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "LAB-2.0-CAL",
+      "text": "Instrument calibration must be valid at the reservation time.",
+      "rule_type": "requirement",
+      "conditions": [],
+      "required_fields": [
+        "calibration_certificate"
+      ],
+      "expected_action": "inspect_evidence",
+      "severity": "high",
+      "exception_ids": [],
+      "tags": [
+        "calibration",
+        "unchanged"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "LAB-2.0-RESERVE",
+      "text": "A confirmed reservation is required for scheduled instrument use.",
+      "rule_type": "requirement",
+      "conditions": [],
+      "required_fields": [
+        "reservation"
+      ],
+      "expected_action": "inspect_evidence",
+      "severity": "medium",
+      "exception_ids": [],
+      "tags": [
+        "reservation",
+        "unchanged"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "LAB-2.0-LEVEL",
+      "text": "User access level must meet or exceed the instrument minimum access level.",
+      "rule_type": "requirement",
+      "conditions": [],
+      "required_fields": [
+        "access_level",
+        "instrument_min_level"
+      ],
+      "expected_action": "inspect_evidence",
+      "severity": "high",
+      "exception_ids": [],
+      "tags": [
+        "access_level",
+        "unchanged"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "LAB-2.0-AFTER",
+      "text": "After-hours use requires supervisor approval unless user access level is 3 or higher and an auto-audit log entry is created.",
+      "rule_type": "exception",
+      "conditions": [
+        "after_hours==true"
+      ],
+      "required_fields": [],
+      "expected_action": "approve_equipment_access",
+      "severity": "medium",
+      "exception_ids": [
+        "LAB-EX-AFTER-L3"
+      ],
+      "tags": [
+        "after_hours",
+        "relaxed"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "LAB-2.0-QC-FAIL",
+      "text": "Failed quality-control checks deny equipment access.",
+      "rule_type": "prohibition",
+      "conditions": [
+        "qc_failed==true"
+      ],
+      "required_fields": [],
+      "expected_action": "deny_equipment_access",
+      "severity": "critical",
+      "exception_ids": [],
+      "tags": [
+        "qc",
+        "unchanged"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "LAB-2.0-NO-MAINT-BYPASS",
+      "text": "Maintenance personnel must follow the same access checks outside declared outages.",
+      "rule_type": "prohibition",
+      "conditions": [],
+      "required_fields": [],
+      "expected_action": null,
+      "severity": "high",
+      "exception_ids": [],
+      "tags": [
+        "maintenance",
+        "removed_exception"
+      ]
+    },
+    {
+      "schema_version": "1.0.0",
+      "clause_id": "LAB-2.0-APPROVE",
+      "text": "Approve access only when all applicable checks pass under the active version.",
+      "rule_type": "permission",
+      "conditions": [],
+      "required_fields": [],
+      "expected_action": "approve_equipment_access",
+      "severity": "medium",
+      "exception_ids": [],
+      "tags": [
+        "approve"
+      ]
+    }
+  ],
+  "required_evidence": [
+    "training_record",
+    "calibration_certificate",
+    "reservation",
+    "access_level"
+  ],
+  "permitted_actions": [
+    "inspect_case",
+    "inspect_evidence",
+    "retrieve_policy",
+    "search_policy_clauses",
+    "approve_equipment_access",
+    "deny_equipment_access",
+    "create_human_review",
+    "finalize_case"
+  ],
+  "prohibited_actions": [
+    "alter_evidence",
+    "release_item"
+  ],
+  "exceptions": [
+    {
+      "schema_version": "1.0.0",
+      "exception_id": "LAB-EX-AFTER-L3",
+      "text": "Access level >= 3 may use after hours with auto-audit logging.",
+      "conditions": [
+        "access_level>=3",
+        "after_hours==true",
+        "auto_audit==true"
+      ],
+      "requires_approval": false
+    }
+  ],
+  "escalation_conditions": [
+    "after_hours==true",
+    "access_level_insufficient==true"
+  ],
+  "examples": [
+    "Trained user with valid calibration and reservation may be approved.",
+    "QC failure requires denial even with a reservation."
+  ],
+  "change_summary": "Relaxed after-hours for level-3+ users with auto-log; removed blanket maintenance exception; stricter QC denial retained.",
+  "change_log": [
+    "2025-01-01: Level-3+ users may use instruments after hours with auto-audit log (relaxed).",
+    "2025-01-01: Maintenance exception removed; maintenance uses standard approval (stricter).",
+    "2025-01-01: QC failure still denies access (unchanged)."
+  ],
+  "source_uri": "synthetic://policyshift/laboratory/1.0",
+  "checksum": "22fdb42f08a302763d1a1b76add1aaafe8cf527a193ed64dcf3cd5b1c857b6ec",
+  "metadata": {}
+}

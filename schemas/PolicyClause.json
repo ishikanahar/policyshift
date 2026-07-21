@@ -1,0 +1,91 @@
+{
+  "$defs": {
+    "RuleType": {
+      "enum": [
+        "requirement",
+        "permission",
+        "prohibition",
+        "exception",
+        "escalation",
+        "definition"
+      ],
+      "title": "RuleType",
+      "type": "string"
+    },
+    "Severity": {
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "title": "Severity",
+      "type": "string"
+    }
+  },
+  "description": "A single enforceable or definitional clause within a policy document.",
+  "properties": {
+    "clause_id": {
+      "title": "Clause Id",
+      "type": "string"
+    },
+    "text": {
+      "title": "Text",
+      "type": "string"
+    },
+    "rule_type": {
+      "$ref": "#/$defs/RuleType"
+    },
+    "conditions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Conditions",
+      "type": "array"
+    },
+    "required_fields": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Required Fields",
+      "type": "array"
+    },
+    "expected_action": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Action"
+    },
+    "severity": {
+      "$ref": "#/$defs/Severity",
+      "default": "medium"
+    },
+    "exception_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Exception Ids",
+      "type": "array"
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
+    }
+  },
+  "required": [
+    "clause_id",
+    "text",
+    "rule_type"
+  ],
+  "title": "PolicyClause",
+  "type": "object"
+}

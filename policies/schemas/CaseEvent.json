@@ -1,0 +1,204 @@
+{
+  "$defs": {
+    "Difficulty": {
+      "enum": [
+        "easy",
+        "medium",
+        "hard",
+        "adversarial"
+      ],
+      "title": "Difficulty",
+      "type": "string"
+    },
+    "Domain": {
+      "enum": [
+        "materials",
+        "laboratory",
+        "ai_governance"
+      ],
+      "title": "Domain",
+      "type": "string"
+    },
+    "EvidenceItem": {
+      "description": "Inspectable evidence attached to a case.",
+      "properties": {
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "PolicyShift data schema version",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "evidence_type": {
+          "title": "Evidence Type",
+          "type": "string"
+        },
+        "present": {
+          "title": "Present",
+          "type": "boolean"
+        },
+        "content": {
+          "additionalProperties": true,
+          "title": "Content",
+          "type": "object"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "evidence_type",
+        "present"
+      ],
+      "title": "EvidenceItem",
+      "type": "object"
+    },
+    "Split": {
+      "enum": [
+        "train",
+        "validation",
+        "test"
+      ],
+      "title": "Split",
+      "type": "string"
+    }
+  },
+  "description": "A synthetic operational event that an agent must resolve under a policy.",
+  "properties": {
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "PolicyShift data schema version",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "case_id": {
+      "title": "Case Id",
+      "type": "string"
+    },
+    "domain": {
+      "$ref": "#/$defs/Domain"
+    },
+    "event_type": {
+      "title": "Event Type",
+      "type": "string"
+    },
+    "occurred_at": {
+      "format": "date-time",
+      "title": "Occurred At",
+      "type": "string"
+    },
+    "payload": {
+      "additionalProperties": true,
+      "title": "Payload",
+      "type": "object"
+    },
+    "available_evidence": {
+      "items": {
+        "$ref": "#/$defs/EvidenceItem"
+      },
+      "title": "Available Evidence",
+      "type": "array"
+    },
+    "missing_evidence": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Missing Evidence",
+      "type": "array"
+    },
+    "expected_policy_id": {
+      "title": "Expected Policy Id",
+      "type": "string"
+    },
+    "expected_policy_version": {
+      "title": "Expected Policy Version",
+      "type": "string"
+    },
+    "expected_actions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Expected Actions",
+      "type": "array"
+    },
+    "prohibited_actions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Prohibited Actions",
+      "type": "array"
+    },
+    "expected_resolution": {
+      "title": "Expected Resolution",
+      "type": "string"
+    },
+    "required_tool_sequence": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Required Tool Sequence",
+      "type": "array"
+    },
+    "difficulty": {
+      "$ref": "#/$defs/Difficulty"
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
+    },
+    "template_id": {
+      "title": "Template Id",
+      "type": "string"
+    },
+    "split": {
+      "$ref": "#/$defs/Split",
+      "default": "train"
+    },
+    "adversarial_hints": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Adversarial Hints",
+      "type": "array"
+    },
+    "combination_id": {
+      "default": "",
+      "title": "Combination Id",
+      "type": "string"
+    },
+    "immutable": {
+      "default": true,
+      "title": "Immutable",
+      "type": "boolean"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    }
+  },
+  "required": [
+    "case_id",
+    "domain",
+    "event_type",
+    "occurred_at",
+    "expected_policy_id",
+    "expected_policy_version",
+    "expected_resolution",
+    "difficulty",
+    "template_id"
+  ],
+  "title": "CaseEvent",
+  "type": "object"
+}
