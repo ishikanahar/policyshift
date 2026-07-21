@@ -1,0 +1,115 @@
+{
+  "experiment_id": "phase2-smoke-local",
+  "seed": 42,
+  "n_cases": 12,
+  "split": "validation",
+  "conditions": {
+    "baseline": {
+      "n": 12,
+      "success": 0.4166666666666667,
+      "task_success": 0.5833333333333334,
+      "active_policy_selection_accuracy": 1.0,
+      "stale_policy_error": 0.0,
+      "unsafe_action": 0.16666666666666666,
+      "hallucinated_policy": 0.0,
+      "evidence_handling": 0.75,
+      "avg_steps": 3.9166666666666665,
+      "total_reward": 1.6258333333333335,
+      "by_domain": {
+        "ai_governance": {
+          "n": 3,
+          "success": 0.3333333333333333,
+          "stale_policy_error": 0.0
+        },
+        "laboratory": {
+          "n": 6,
+          "success": 0.6666666666666666,
+          "stale_policy_error": 0.0
+        },
+        "materials": {
+          "n": 3,
+          "success": 0.0,
+          "stale_policy_error": 0.0
+        }
+      },
+      "by_difficulty": {
+        "medium": {
+          "n": 12,
+          "success": 0.4166666666666667,
+          "stale_policy_error": 0.0
+        }
+      }
+    },
+    "rag": {
+      "n": 12,
+      "success": 0.75,
+      "task_success": 0.75,
+      "active_policy_selection_accuracy": 1.0,
+      "stale_policy_error": 0.0,
+      "unsafe_action": 0.0,
+      "hallucinated_policy": 0.0,
+      "evidence_handling": 0.75,
+      "avg_steps": 6.916666666666667,
+      "total_reward": 2.1666666666666665,
+      "by_domain": {
+        "ai_governance": {
+          "n": 3,
+          "success": 1.0,
+          "stale_policy_error": 0.0
+        },
+        "laboratory": {
+          "n": 6,
+          "success": 1.0,
+          "stale_policy_error": 0.0
+        },
+        "materials": {
+          "n": 3,
+          "success": 0.0,
+          "stale_policy_error": 0.0
+        }
+      },
+      "by_difficulty": {
+        "medium": {
+          "n": 12,
+          "success": 0.75,
+          "stale_policy_error": 0.0
+        }
+      }
+    }
+  },
+  "retrieval_ablation": {
+    "naive": {
+      "n": 12,
+      "recall_policy@5": 0.9166666666666666,
+      "recall_clause@5": 0.9166666666666666,
+      "stale_rate@5": 0.45,
+      "mrr_policy": 0.7916666666666666,
+      "mean_latency_ms": 0.08402416642638855
+    },
+    "date_filtered": {
+      "n": 12,
+      "recall_policy@5": 1.0,
+      "recall_clause@5": 1.0,
+      "stale_rate@5": 0.0,
+      "mrr_policy": 1.0,
+      "mean_latency_ms": 0.07639933392056264
+    },
+    "metadata_rerank": {
+      "n": 12,
+      "recall_policy@5": 1.0,
+      "recall_clause@5": 1.0,
+      "stale_rate@5": 0.0,
+      "mrr_policy": 1.0,
+      "mean_latency_ms": 0.11497233329767671
+    },
+    "date_filtered_rerank": {
+      "n": 12,
+      "recall_policy@5": 1.0,
+      "recall_clause@5": 1.0,
+      "stale_rate@5": 0.0,
+      "mrr_policy": 1.0,
+      "mean_latency_ms": 0.08577783592045307
+    }
+  },
+  "agent_note": "Phase 2 smoke uses heuristic-baseline and heuristic-rag tool agents (CPU). Not LLM checkpoints. Metrics are from real executed traces."
+}

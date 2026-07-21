@@ -1,0 +1,9 @@
+# Distillation smoke config
+seed: 42
+teacher_source: oracle
+n_train_cases: 40
+n_eval_cases: 12
+artifact_root: artifacts/experiments
+notes: >
+  Oracle teacher + verifier filtering + SFT smoke + base/RAG/distilled comparison.
+  API teacher requires TEACHER_API_KEY (optional; not used in smoke).

@@ -1,0 +1,13 @@
+# Phase 3 SFT smoke (CPU) — no large model download required
+seed: 42
+smoke: true
+max_steps: 2
+learning_rate: 0.001
+lora_r: 4
+lora_alpha: 8
+model_name_or_path: smoke-tiny-policylm
+train_file: data/generated/sft/sft_train.jsonl
+output_dir: artifacts/experiments/sft-smoke/checkpoints
+notes: >
+  Tiny LM / numpy adapter smoke. For real LoRA on Qwen2.5-0.5B-Instruct see
+  configs/sft/full_gpu.yaml

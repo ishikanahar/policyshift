@@ -1,0 +1,18 @@
+# Phase 2 smoke evaluation (CPU, hashing embedder, heuristic agents)
+seed: 42
+n_cases: 40
+split: validation
+artifact_root: artifacts/experiments
+embedder: hashing
+index_backend: numpy
+agents:
+  - heuristic-baseline
+  - heuristic-rag
+retrieval_modes:
+  - naive
+  - date_filtered
+  - metadata_rerank
+  - date_filtered_rerank
+notes: >
+  Produces real traces and metrics. Agents are heuristic tool-users for CPU smoke,
+  not LLM checkpoints. Optional GPU HF path documented in configs/retrieval/full.yaml.

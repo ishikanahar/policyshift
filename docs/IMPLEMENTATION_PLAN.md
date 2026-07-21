@@ -24,25 +24,29 @@
 
 ## Phase plan
 
-### Phase 1 — Functional environment (current)
+### Phase 1 — Functional environment
 
 **Build:** Pydantic schemas; three synthetic domains × three policy versions; deterministic tool environment; case generator; verifiers; decomposable rewards; unit tests; CLI demo; ≥100 deterministic cases.
 
-**Acceptance:** Cases resolve deterministically; effective-date / supersession logic works; stale policies detectable; tests pass; CLI demo runs.
+**Acceptance:** Cases resolve deterministically; effective-date / supersession logic works; stale policies detectable; tests pass; CLI demo runs. **Done.**
 
 **Validate:** `make phase1` (generate policies/cases + pytest Phase 1 suite).
 
 ### Phase 2 — Baseline agent and retrieval
 
-Local Sentence-Transformers + FAISS retriever; date-filtered and metadata-aware variants; base and RAG-only agents; evaluation harness; failure taxonomy; artifact export.
+Local hashing / optional Sentence-Transformers + FAISS retriever; date-filtered and metadata-aware variants; base and RAG-only agents; evaluation harness; failure taxonomy; artifact export.
 
-**Acceptance:** Base and RAG conditions produce real metrics/traces; retrieval metrics correct.
+**Acceptance:** Base and RAG conditions produce real metrics/traces; retrieval metrics correct. **Done 2026-07-21.**
+
+**Validate:** `make evaluate-phase2` and `pytest -m phase2`.
 
 ### Phase 3 — SFT and distillation
 
 Teacher trajectory generation (API / local / pre-generated file); verifier filtering; LoRA SFT; smoke training; documented GPU command.
 
 **Acceptance:** Smoke SFT completes; checkpoint loads; base vs SFT comparison artifacts exported.
+
+**Validate:** `make evaluate-phase3` and `pytest -m phase3`.
 
 ### Phase 4 — Preference optimization
 

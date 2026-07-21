@@ -1,0 +1,19 @@
+# Full retrieval evaluation config
+seed: 42
+n_cases: 120
+split: test
+embedder: hashing  # set to sentence-transformers when extras installed
+embedder_model_name: sentence-transformers/all-MiniLM-L6-v2
+index_backend: numpy  # set to faiss when faiss-cpu installed
+top_k: 5
+modes:
+  - naive
+  - date_filtered
+  - metadata_rerank
+  - date_filtered_rerank
+optional_gpu_agent:
+  model_id: Qwen/Qwen2.5-0.5B-Instruct
+  command: >
+    python scripts/evaluate.py --config configs/retrieval/full.yaml
+    # After: pip install 'policyshift[retrieval,training]'
+    # HF adapter is optional; Phase 2 acceptance uses heuristic agents + real retrieval metrics.

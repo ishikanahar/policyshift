@@ -1,0 +1,45 @@
+{
+  "primary_mode": "date_filtered_rerank",
+  "primary": {
+    "n": 12,
+    "recall_policy@5": 1.0,
+    "recall_clause@5": 1.0,
+    "stale_rate@5": 0.0,
+    "mrr_policy": 1.0,
+    "mean_latency_ms": 0.08577783592045307
+  },
+  "ablation": {
+    "naive": {
+      "n": 12,
+      "recall_policy@5": 0.9166666666666666,
+      "recall_clause@5": 0.9166666666666666,
+      "stale_rate@5": 0.45,
+      "mrr_policy": 0.7916666666666666,
+      "mean_latency_ms": 0.08402416642638855
+    },
+    "date_filtered": {
+      "n": 12,
+      "recall_policy@5": 1.0,
+      "recall_clause@5": 1.0,
+      "stale_rate@5": 0.0,
+      "mrr_policy": 1.0,
+      "mean_latency_ms": 0.07639933392056264
+    },
+    "metadata_rerank": {
+      "n": 12,
+      "recall_policy@5": 1.0,
+      "recall_clause@5": 1.0,
+      "stale_rate@5": 0.0,
+      "mrr_policy": 1.0,
+      "mean_latency_ms": 0.11497233329767671
+    },
+    "date_filtered_rerank": {
+      "n": 12,
+      "recall_policy@5": 1.0,
+      "recall_clause@5": 1.0,
+      "stale_rate@5": 0.0,
+      "mrr_policy": 1.0,
+      "mean_latency_ms": 0.08577783592045307
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "experiment_id": "phase2-smoke-local",
+  "created_at": "2026-07-21T17:28:53.698796+00:00",
+  "n_trajectories": 24,
+  "files": {
+    "config": "config.json",
+    "trajectories": "traces/trajectories.jsonl",
+    "per_case_metrics": "metrics/per_case.json",
+    "summary": "metrics/summary.json",
+    "retrieval_rows": "retrieval/per_case.json",
+    "retrieval_summary": "retrieval/summary.json",
+    "failures": "failures/report.json"
+  },
+  "config_checksum": "a59421d0d803bb8471b102d60892a0cce6aac79db707bc88e2df9b95c296bb3e",
+  "summary_checksum": "8eb76e4d3617cead72bf0176047983e17009e24b35a0be98b0362fa36229f6f2"
+}
