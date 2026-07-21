@@ -1,4 +1,4 @@
-.PHONY: install install-dev phase1 phase2 phase3 phase4 generate-policies generate-cases test-phase1 test-phase2 test-phase3 test-phase4 test-all demo evaluate-phase2 evaluate-phase3 evaluate-phase4 lint format typecheck
+.PHONY: install install-dev phase1 phase2 phase3 phase4 phase5 phase6 phase7 phase9 test-all demo evaluate-phase2 evaluate-phase3 evaluate-phase4 evaluate-phase5 evaluate-phase6 evaluate-phase7 export-portfolio serve-playback lint format typecheck
 
 PYTHON ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else echo python3; fi)
 PIP ?= $(PYTHON) -m pip
@@ -15,18 +15,6 @@ generate-policies:
 generate-cases:
 	$(PYTHON) scripts/generate_cases.py --seed 42 --n-cases 120 --out data/generated/cases
 
-test-phase1:
-	$(PYTHON) -m pytest tests/unit tests/integration -m phase1 -q
-
-test-phase2:
-	$(PYTHON) -m pytest tests/unit tests/integration -m phase2 -q
-
-test-phase3:
-	$(PYTHON) -m pytest tests/unit tests/integration -m phase3 -q
-
-test-phase4:
-	$(PYTHON) -m pytest tests/unit tests/integration -m phase4 -q
-
 test-all:
 	$(PYTHON) -m pytest tests/unit tests/integration -q
 
@@ -42,17 +30,23 @@ evaluate-phase3:
 evaluate-phase4:
 	$(PYTHON) scripts/train_dpo_smoke.py --n-cases 40 --n-eval 12
 
-phase1: install-dev generate-policies generate-cases test-phase1
-	@echo "Phase 1 validation complete"
+evaluate-phase5:
+	$(PYTHON) scripts/run_phase5_smoke.py --experiment-id phase5-smoke-local
 
-phase2: install-dev generate-policies generate-cases test-all evaluate-phase2
-	@echo "Phase 2 validation complete"
+evaluate-phase6:
+	$(PYTHON) scripts/run_phase6_smoke.py --experiment-id phase6-smoke-local
 
-phase3: install-dev test-all evaluate-phase3
-	@echo "Phase 3 validation complete"
+evaluate-phase7:
+	$(PYTHON) scripts/run_phase7_smoke.py --experiment-id phase7-smoke-local
 
-phase4: install-dev test-all evaluate-phase4
-	@echo "Phase 4 validation complete"
+export-portfolio:
+	$(PYTHON) scripts/export_portfolio.py
+
+serve-playback:
+	$(PYTHON) scripts/serve_playback.py
+
+phase9: export-portfolio
+	@echo "Portfolio export complete — see portfolio_export/RESUME_BULLETS.md"
 
 lint:
 	ruff check src tests scripts

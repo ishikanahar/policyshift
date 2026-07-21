@@ -1,0 +1,199 @@
+{
+  "project": "PolicyShift",
+  "tagline": "Continual post-training for tool-using agents under evolving enterprise policies",
+  "github": "https://github.com/ishikanahar/policyshift",
+  "synthetic": true,
+  "n_domains": 3,
+  "n_policy_versions_per_domain": 3,
+  "n_cases_benchmark": 120,
+  "tests_passed": 74,
+  "phase2": {
+    "baseline_task_success": 0.5833333333333334,
+    "rag_task_success": 0.75,
+    "baseline_unsafe": 0.16666666666666666,
+    "rag_unsafe": 0.0,
+    "naive_stale_at_5": 0.45,
+    "date_filtered_stale_at_5": 0.0
+  },
+  "phase3": {
+    "distilled_task_success": 1.0,
+    "note": "smoke teacher-replay; not Qwen-scale SFT"
+  },
+  "phase4": {
+    "dpo_task_success": 1.0,
+    "n_preference_pairs": 120,
+    "note": "smoke chosen-replay; not TRL/Qwen DPO"
+  },
+  "collected_at": "2026-07-21T19:55:45.940940+00:00",
+  "artifacts_found": [
+    "phase2-smoke-local",
+    "phase3-smoke-local",
+    "phase4-smoke-local",
+    "phase5-smoke-local",
+    "phase6-smoke-local",
+    "phase7-smoke-local"
+  ],
+  "phase5": {
+    "strategies": {
+      "none": {
+        "average_forgetting": 0.0,
+        "average_backward_transfer": 0.0,
+        "mean_stale_policy_error": 0.0
+      },
+      "random": {
+        "average_forgetting": 0.0,
+        "average_backward_transfer": 0.0,
+        "mean_stale_policy_error": 0.0
+      },
+      "version_aware": {
+        "average_forgetting": 0.0,
+        "average_backward_transfer": 0.0,
+        "mean_stale_policy_error": 0.0
+      }
+    },
+    "reference": {
+      "baseline": {
+        "n": 12,
+        "success": 0.4166666666666667,
+        "task_success": 0.5833333333333334,
+        "active_policy_selection_accuracy": 1.0,
+        "stale_policy_error": 0.0,
+        "unsafe_action": 0.16666666666666666,
+        "hallucinated_policy": 0.0,
+        "evidence_handling": 0.75,
+        "avg_steps": 3.9166666666666665,
+        "total_reward": 1.6258333333333335,
+        "by_domain": {
+          "ai_governance": {
+            "n": 3,
+            "success": 0.3333333333333333,
+            "stale_policy_error": 0.0
+          },
+          "laboratory": {
+            "n": 6,
+            "success": 0.6666666666666666,
+            "stale_policy_error": 0.0
+          },
+          "materials": {
+            "n": 3,
+            "success": 0.0,
+            "stale_policy_error": 0.0
+          }
+        },
+        "by_difficulty": {
+          "medium": {
+            "n": 12,
+            "success": 0.4166666666666667,
+            "stale_policy_error": 0.0
+          }
+        }
+      },
+      "rag": {
+        "n": 12,
+        "success": 0.75,
+        "task_success": 0.75,
+        "active_policy_selection_accuracy": 1.0,
+        "stale_policy_error": 0.0,
+        "unsafe_action": 0.0,
+        "hallucinated_policy": 0.0,
+        "evidence_handling": 0.75,
+        "avg_steps": 6.916666666666667,
+        "total_reward": 2.1666666666666665,
+        "by_domain": {
+          "ai_governance": {
+            "n": 3,
+            "success": 1.0,
+            "stale_policy_error": 0.0
+          },
+          "laboratory": {
+            "n": 6,
+            "success": 1.0,
+            "stale_policy_error": 0.0
+          },
+          "materials": {
+            "n": 3,
+            "success": 0.0,
+            "stale_policy_error": 0.0
+          }
+        },
+        "by_difficulty": {
+          "medium": {
+            "n": 12,
+            "success": 0.75,
+            "stale_policy_error": 0.0
+          }
+        }
+      }
+    }
+  },
+  "phase6": {
+    "comparison": {
+      "label_all_task_success": 0.75,
+      "combined_task_success": 0.75,
+      "label_all_calls": 60,
+      "combined_calls": 12,
+      "teacher_call_reduction_pct": 80.0,
+      "budget": 12
+    },
+    "strategies": {
+      "label_all": {
+        "task_success": 0.75,
+        "teacher_calls": 60,
+        "estimated_cost_usd": 0.12
+      },
+      "random": {
+        "task_success": 0.75,
+        "teacher_calls": 12,
+        "estimated_cost_usd": 0.024
+      },
+      "uncertainty": {
+        "task_success": 0.75,
+        "teacher_calls": 12,
+        "estimated_cost_usd": 0.024
+      },
+      "failure": {
+        "task_success": 0.75,
+        "teacher_calls": 12,
+        "estimated_cost_usd": 0.024
+      },
+      "diversity": {
+        "task_success": 0.75,
+        "teacher_calls": 12,
+        "estimated_cost_usd": 0.024
+      },
+      "policy_change": {
+        "task_success": 0.75,
+        "teacher_calls": 12,
+        "estimated_cost_usd": 0.024
+      },
+      "combined": {
+        "task_success": 0.75,
+        "teacher_calls": 12,
+        "estimated_cost_usd": 0.024
+      }
+    }
+  },
+  "phase7": {
+    "conditions": {
+      "baseline": {
+        "task_success": 0.5833333333333334,
+        "unsafe_action": 0.16666666666666666
+      },
+      "rag": {
+        "task_success": 0.75,
+        "unsafe_action": 0.0
+      },
+      "rl": {
+        "task_success": 1.0,
+        "unsafe_action": 0.0
+      }
+    },
+    "reward_hacking": {
+      "n": 12,
+      "high_reward_short_trajectory_rate": 0.0,
+      "high_reward_failed_task_rate": 0.0,
+      "flag_reward_hacking_risk": false,
+      "note": "Heuristic diagnostics only; not a formal hacking proof."
+    }
+  }
+}

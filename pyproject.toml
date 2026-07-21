@@ -61,6 +61,7 @@ training = [
 api = [
   "fastapi>=0.111",
   "uvicorn[standard]>=0.30",
+  "httpx>=0.27",
 ]
 all = [
   "policyshift[dev,retrieval,training,api]",
@@ -91,6 +92,11 @@ markers = [
   "phase2: Phase 2 retrieval, baseline/RAG agents, evaluation",
   "phase3: Phase 3 teacher distillation and SFT smoke",
   "phase4: Phase 4 preference pairs and DPO smoke",
+  "phase5: Phase 5 continual learning and replay",
+  "phase6: Phase 6 TeacherBudget",
+  "phase7: Phase 7 verifier-guided RL smoke",
+  "phase8: Phase 8 artifact playback UI",
+  "phase9: Phase 9 portfolio and report export",
   "integration: integration tests",
   "regression: regression tests",
 ]

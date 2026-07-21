@@ -20,7 +20,8 @@ from policyshift.environment import PolicyShiftEnvironment, PolicyStore
 from policyshift.evaluation import run_phase2_smoke
 from policyshift.retrieval import PolicyRetriever, evaluate_retrieval_result
 from policyshift.schemas import Split, export_json_schemas
-from policyshift.training import run_phase3_smoke, run_phase4_smoke
+from policyshift.training import run_phase3_smoke, run_phase4_smoke, run_phase5_smoke, run_phase6_smoke, run_phase7_smoke
+from policyshift.portfolio import write_portfolio_export
 
 app = typer.Typer(help="PolicyShift: continual post-training under evolving enterprise policies.")
 console = Console()
@@ -279,6 +280,91 @@ def evaluate_phase4_cmd(
             f"  {name}: success={summary.get('success', 0):.3f} "
             f"task_success={summary.get('task_success', 0):.3f} n={summary.get('n', 0)}"
         )
+
+
+@app.command("evaluate-phase5")
+def evaluate_phase5_cmd(
+    seed: int = typer.Option(42),
+    n_cases: int = typer.Option(90),
+    per_version_eval: int = typer.Option(6),
+    artifact_root: Path = typer.Option(Path("artifacts/experiments")),
+) -> None:
+    """Continual learning smoke: sequential vs replay forgetting metrics."""
+    result = run_phase5_smoke(
+        seed=seed,
+        n_cases=n_cases,
+        per_version_eval=per_version_eval,
+        artifact_root=artifact_root,
+        experiment_id="phase5-smoke-local",
+    )
+    console.print(f"Experiment: {result['experiment_id']}")
+    for name, s in result["summary"]["strategies"].items():
+        console.print(
+            f"  {name}: forgetting={s['average_forgetting']:.3f} "
+            f"bwt={s['average_backward_transfer']:.3f} stale={s['mean_stale_policy_error']:.3f}"
+        )
+
+
+@app.command("evaluate-phase6")
+def evaluate_phase6_cmd(
+    seed: int = typer.Option(42),
+    n_cases: int = typer.Option(60),
+    n_eval: int = typer.Option(12),
+    budget: int = typer.Option(12),
+    artifact_root: Path = typer.Option(Path("artifacts/experiments")),
+) -> None:
+    """TeacherBudget smoke under a fixed teacher-call budget."""
+    result = run_phase6_smoke(
+        seed=seed,
+        n_cases=n_cases,
+        n_eval=n_eval,
+        budget=budget,
+        artifact_root=artifact_root,
+        experiment_id="phase6-smoke-local",
+    )
+    cmp_ = result["summary"]["comparison"]
+    console.print(f"Experiment: {result['experiment_id']}")
+    console.print(
+        f"Teacher call reduction={cmp_['teacher_call_reduction_pct']}% "
+        f"(combined task_success={cmp_['combined_task_success']:.3f} vs "
+        f"label_all={cmp_['label_all_task_success']:.3f})"
+    )
+
+
+@app.command("evaluate-phase7")
+def evaluate_phase7_cmd(
+    seed: int = typer.Option(42),
+    n_cases: int = typer.Option(40),
+    n_eval: int = typer.Option(12),
+    artifact_root: Path = typer.Option(Path("artifacts/experiments")),
+) -> None:
+    """Verifier-guided RL smoke with reward-hacking diagnostics."""
+    result = run_phase7_smoke(
+        seed=seed,
+        n_cases=n_cases,
+        n_eval=n_eval,
+        artifact_root=artifact_root,
+        experiment_id="phase7-smoke-local",
+    )
+    console.print(f"Experiment: {result['experiment_id']}")
+    for name, summary in result["summary"]["conditions"].items():
+        console.print(
+            f"  {name}: task_success={summary.get('task_success', 0):.3f} "
+            f"unsafe={summary.get('unsafe_action', 0):.3f}"
+        )
+    console.print(f"Reward hacking flag={result['summary']['reward_hacking']['flag_reward_hacking_risk']}")
+
+
+@app.command("export-portfolio")
+def export_portfolio_cmd(
+    out: Path = typer.Option(Path("portfolio_export")),
+    artifact_root: Path = typer.Option(Path("artifacts/experiments")),
+) -> None:
+    """Write resume bullets + website card + technical report from measured artifacts."""
+    paths = write_portfolio_export(out, artifact_root=artifact_root)
+    console.print(f"Wrote portfolio to {out}")
+    for k, v in paths.items():
+        console.print(f"  {k}: {v}")
 
 
 if __name__ == "__main__":

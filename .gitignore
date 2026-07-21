@@ -58,6 +58,11 @@ artifacts/figures/*
 portfolio_export/*
 !portfolio_export/.gitkeep
 !portfolio_export/README.md
+!portfolio_export/RESUME_BULLETS.md
+!portfolio_export/results_summary.json
+!portfolio_export/resume_bullets.json
+!portfolio_export/website_card.json
+!portfolio_export/TECHNICAL_REPORT.md
 
 # Node / frontend (Phase 8)
 node_modules/

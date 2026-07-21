@@ -6,22 +6,21 @@ Organizations continually update procedures, safety rules, and operating policie
 
 **Research question:** How do supervised fine-tuning, teacher–student distillation, DPO, and verifier-guided RL differ in teaching a small tool-using language model to follow changing enterprise policies while minimizing stale-policy errors, forgetting, unsafe actions, and teacher cost?
 
-> Status: **Phase 4 complete** — preference pairs, DPO smoke training, and base/RAG/DPO comparison artifacts. Continual learning / RL / visual app are later phases. Metrics below come from executed smoke artifacts, not invented scores.
+> Status: **Phases 0–9 smoke complete** — environment, retrieval, distillation, DPO, continual learning, TeacherBudget, RL smoke, artifact playback UI, and portfolio/resume export. Metrics below come from executed smoke artifacts, not invented scores.
 
 ## Quick demo
 
 ```bash
-python -m pip install -e ".[dev]"
-make generate-policies
-make generate-cases
+python -m pip install -e ".[dev,api]"
+make generate-policies && make generate-cases
 python -m policyshift.cli demo --seed 42
 python -m policyshift.cli evaluate-phase2 --n-cases 20
-python -m policyshift.cli evaluate-phase3 --n-cases 40 --n-eval 12
-python -m policyshift.cli evaluate-phase4 --n-cases 40 --n-eval 12
+python -m policyshift.cli export-portfolio
+python scripts/serve_playback.py   # http://127.0.0.1:8000
 python -m pytest tests/unit tests/integration -q
 ```
 
-Or: `make phase1` / `make evaluate-phase2` / `make evaluate-phase3` / `make evaluate-phase4`
+Resume bullets: `portfolio_export/RESUME_BULLETS.md` · Report: `docs/TECHNICAL_REPORT.md`
 
 ## Phase 2 smoke results (real artifact: `phase2-smoke-local`)
 

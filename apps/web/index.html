@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PolicyShift</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="atmosphere"></div>
+  <header class="site-header">
+    <p class="brand">PolicyShift</p>
+    <nav>
+      <a href="#results">Results</a>
+      <a href="#playback">Playback</a>
+      <a href="https://github.com/ishikanahar/policyshift" target="_blank" rel="noreferrer">GitHub</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1 class="brand-hero">PolicyShift</h1>
+      <p class="lede" id="subtitle">Continual post-training for agents under evolving enterprise policies.</p>
+      <div class="cta-row">
+        <a class="cta" href="https://github.com/ishikanahar/policyshift" target="_blank" rel="noreferrer">View repository</a>
+        <a class="cta ghost" href="#playback">Play artifacts</a>
+      </div>
+    </section>
+
+    <section id="results" class="panel">
+      <h2>Measured smoke highlights</h2>
+      <p class="support">From executed experiment artifacts — not invented scores.</p>
+      <div class="highlights" id="highlights"></div>
+      <p class="disclaimer" id="disclaimer"></p>
+    </section>
+
+    <section id="playback" class="panel">
+      <h2>Artifact playback</h2>
+      <p class="support">Select a local experiment to inspect summaries and trajectories.</p>
+      <label class="field">
+        Experiment
+        <select id="experiment-select"></select>
+      </label>
+      <pre id="experiment-view" class="code-block">Loading experiments…</pre>
+      <h3>Sample trajectories</h3>
+      <pre id="traj-view" class="code-block">—</pre>
+    </section>
+  </main>
+
+  <footer>
+    <p>Synthetic research benchmark · Apache-2.0</p>
+  </footer>
+  <script src="/app.js"></script>
+</body>
+</html>
