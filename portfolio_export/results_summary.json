@@ -24,7 +24,7 @@
     "n_preference_pairs": 120,
     "note": "smoke chosen-replay; not TRL/Qwen DPO"
   },
-  "collected_at": "2026-07-21T19:55:45.940940+00:00",
+  "collected_at": "2026-07-21T20:05:48.562227+00:00",
   "artifacts_found": [
     "phase2-smoke-local",
     "phase3-smoke-local",

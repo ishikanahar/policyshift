@@ -87,9 +87,12 @@ def test_phase7_smoke(tmp_path: Path) -> None:
 
 @pytest.mark.phase9
 def test_portfolio_export(tmp_path: Path) -> None:
+    # Seed a minimal apps/web so sync copy succeeds from tmp cwd... actually write_portfolio
+    # copies from apps/web relative to cwd (repo root in tests).
     paths = write_portfolio_export(tmp_path / "portfolio", artifact_root=tmp_path / "missing")
     assert paths["resume_md"].exists()
     assert paths["website"].exists()
+    assert Path("apps/web/data.js").exists()
     bullets = resume_bullets(
         {
             "n_domains": 3,

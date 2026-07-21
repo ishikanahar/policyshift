@@ -22,6 +22,20 @@ python -m pytest tests/unit tests/integration -q
 
 Resume bullets: `portfolio_export/RESUME_BULLETS.md` · Report: `docs/TECHNICAL_REPORT.md`
 
+## Website (local)
+
+```bash
+pip install -e ".[dev,api]"   # api optional
+python scripts/export_portfolio.py
+python scripts/serve_playback.py
+# → http://127.0.0.1:8000
+```
+
+Static-only (no FastAPI): `python scripts/serve_playback.py --static`
+
+After push, GitHub Pages can serve `docs/site/` (workflow: `.github/workflows/pages.yml`).
+Expected URL once Pages is enabled: `https://ishikanahar.github.io/policyshift/`
+
 ## Phase 2 smoke results (real artifact: `phase2-smoke-local`)
 
 CPU smoke with hashing embedder + heuristic tool agents (`heuristic-baseline` / `heuristic-rag`), validation split (n=12 cases × 2 conditions). Not LLM checkpoints.
