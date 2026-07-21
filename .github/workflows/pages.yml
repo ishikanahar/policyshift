@@ -25,7 +25,7 @@ jobs:
       - name: Prepare site
         run: |
           mkdir -p _site
-          cp apps/web/index.html apps/web/styles.css apps/web/app.js apps/web/data.js _site/
+          cp apps/web/index.html apps/web/styles.css apps/web/app.js apps/web/data.js apps/web/experiments.js _site/
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
