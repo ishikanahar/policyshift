@@ -90,6 +90,7 @@ markers = [
   "phase1: Phase 1 functional environment tests",
   "phase2: Phase 2 retrieval, baseline/RAG agents, evaluation",
   "phase3: Phase 3 teacher distillation and SFT smoke",
+  "phase4: Phase 4 preference pairs and DPO smoke",
   "integration: integration tests",
   "regression: regression tests",
 ]

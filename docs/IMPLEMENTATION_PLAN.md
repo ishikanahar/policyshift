@@ -54,6 +54,8 @@ Preference-pair construction from verified trajectories; DPO via TRL; preference
 
 **Acceptance:** Inspectable pairs; DPO smoke training; evaluation artifacts.
 
+**Validate:** `make evaluate-phase4` and `pytest -m phase4`.
+
 ### Phase 5 — Continual learning
 
 Sequential policy updates; version-aware replay strategies; forgetting / backward-transfer metrics.

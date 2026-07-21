@@ -20,7 +20,7 @@ from policyshift.environment import PolicyShiftEnvironment, PolicyStore
 from policyshift.evaluation import run_phase2_smoke
 from policyshift.retrieval import PolicyRetriever, evaluate_retrieval_result
 from policyshift.schemas import Split, export_json_schemas
-from policyshift.training import run_phase3_smoke
+from policyshift.training import run_phase3_smoke, run_phase4_smoke
 
 app = typer.Typer(help="PolicyShift: continual post-training under evolving enterprise policies.")
 console = Console()
@@ -243,6 +243,36 @@ def evaluate_phase3_cmd(
         f"{result['summary']['teacher']['n_cases']} "
         f"SFT examples={result['summary']['sft_examples']}"
     )
+    console.print(f"Checkpoint: {result['summary']['checkpoint_loaded']['path']}")
+    for name, summary in result["summary"]["conditions"].items():
+        console.print(
+            f"  {name}: success={summary.get('success', 0):.3f} "
+            f"task_success={summary.get('task_success', 0):.3f} n={summary.get('n', 0)}"
+        )
+
+
+@app.command("evaluate-phase4")
+def evaluate_phase4_cmd(
+    seed: int = typer.Option(42),
+    n_cases: int = typer.Option(40, help="Train cases for preference pairs"),
+    n_eval: int = typer.Option(12, help="Eval cases for base/RAG/DPO"),
+    artifact_root: Path = typer.Option(Path("artifacts/experiments")),
+) -> None:
+    """Run Phase 4 smoke: preference pairs → DPO → base/RAG/DPO comparison."""
+    result = run_phase4_smoke(
+        seed=seed,
+        n_cases=n_cases,
+        n_eval=n_eval,
+        artifact_root=artifact_root,
+    )
+    console.print(f"Experiment: {result['experiment_id']}")
+    prefs = result["summary"]["preferences"]
+    console.print(
+        f"Preference pairs={prefs['n_pairs']} "
+        f"(cases used={prefs['n_cases_used']}) "
+        f"DPO examples={prefs['n_dpo_examples']}"
+    )
+    console.print(f"Explorer: {result['paths']['preference_explorer']}")
     console.print(f"Checkpoint: {result['summary']['checkpoint_loaded']['path']}")
     for name, summary in result["summary"]["conditions"].items():
         console.print(

@@ -24,6 +24,24 @@ Default embedder is deterministic hashing (no network). Optional Sentence Transf
 
 Smoke agents are labeled `heuristic-baseline` / `heuristic-rag` (not trained LLMs). Metrics in README come from exported artifacts only.
 
+## Phase 3–4
+
+```bash
+python scripts/train_distill_smoke.py --n-cases 40 --n-eval 12 --experiment-id phase3-smoke-local
+python scripts/train_dpo_smoke.py --n-cases 40 --n-eval 12 --experiment-id phase4-smoke-local
+python -m pytest tests/unit tests/integration -q
+```
+
+Preference explorer: `artifacts/experiments/<id>/preferences/preference_explorer.json`.
+
+Optional full GPU:
+
+```bash
+pip install 'policyshift[training]'
+python scripts/train_sft.py --config configs/sft/full_gpu.yaml
+python scripts/train_dpo.py --config configs/dpo/full_gpu.yaml --no-smoke
+```
+
 ## Later phases
 
-GPU training commands will be documented per method under `configs/` once smoke runs succeed. Never invent missing hardware logs.
+GPU training commands for continual learning / RL will be documented under `configs/` once smoke runs succeed. Never invent missing hardware logs.

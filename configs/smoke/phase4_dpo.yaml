@@ -1,0 +1,9 @@
+smoke: true
+seed: 42
+max_steps: 2
+learning_rate: 0.001
+beta: 0.1
+model_name_or_path: smoke-tiny-dpo
+train_file: data/preferences/smoke/dpo_train.jsonl
+output_dir: artifacts/experiments/dpo-smoke/checkpoints
+notes: Phase 4 CPU smoke DPO (not TRL/Qwen)

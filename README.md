@@ -6,7 +6,7 @@ Organizations continually update procedures, safety rules, and operating policie
 
 **Research question:** How do supervised fine-tuning, teacher–student distillation, DPO, and verifier-guided RL differ in teaching a small tool-using language model to follow changing enterprise policies while minimizing stale-policy errors, forgetting, unsafe actions, and teacher cost?
 
-> Status: **Phase 3 complete** — teacher distillation pipeline, SFT JSONL, CPU smoke training, and base/RAG/distilled comparison artifacts. DPO/RL and the visual app are later phases. Metrics below come from executed smoke artifacts, not invented scores.
+> Status: **Phase 4 complete** — preference pairs, DPO smoke training, and base/RAG/DPO comparison artifacts. Continual learning / RL / visual app are later phases. Metrics below come from executed smoke artifacts, not invented scores.
 
 ## Quick demo
 
@@ -17,10 +17,11 @@ make generate-cases
 python -m policyshift.cli demo --seed 42
 python -m policyshift.cli evaluate-phase2 --n-cases 20
 python -m policyshift.cli evaluate-phase3 --n-cases 40 --n-eval 12
+python -m policyshift.cli evaluate-phase4 --n-cases 40 --n-eval 12
 python -m pytest tests/unit tests/integration -q
 ```
 
-Or: `make phase1` / `make evaluate-phase2` / `make evaluate-phase3`
+Or: `make phase1` / `make evaluate-phase2` / `make evaluate-phase3` / `make evaluate-phase4`
 
 ## Phase 2 smoke results (real artifact: `phase2-smoke-local`)
 
@@ -55,6 +56,19 @@ Oracle teacher → verifier filter → SFT JSONL → CPU smoke adapter → compa
 Re-run: `python scripts/train_distill_smoke.py --n-cases 40 --n-eval 12`  
 Full GPU LoRA (optional): see `configs/sft/full_gpu.yaml`
 
+## Phase 4 smoke results (real artifact: `phase4-smoke-local`)
+
+Preference pairs (current-vs-stale / grounded-vs-unsupported / safe-vs-unsafe) → DPO JSONL → CPU smoke adapter → compare. DPO student replays preference-chosen trajectories on covered cases (smoke, not TRL/Qwen DPO).
+
+| Condition | Task success | Unsafe action |
+| --- | --- | --- |
+| Baseline | 0.58 | 0.17 |
+| RAG | 0.75 | 0.00 |
+| DPO (smoke replay) | 1.00 | 0.00 |
+
+Re-run: `python scripts/train_dpo_smoke.py --n-cases 40 --n-eval 12`  
+Full GPU TRL DPO (optional): see `configs/dpo/full_gpu.yaml`
+
 ## Repository layout
 
 See `docs/IMPLEMENTATION_PLAN.md` for the full phase plan and `docs/RESEARCH_DESIGN.md` for hypotheses and metrics.
@@ -84,12 +98,13 @@ Optional extras: `retrieval` (Sentence Transformers + FAISS), `training`, `api`.
 make phase1
 make evaluate-phase2
 make evaluate-phase3
+make evaluate-phase4
 python -m policyshift.cli resolve-all --n-cases 120
 ```
 
 ## Full training / evaluation
 
-Phase 3 CPU smoke is default. Optional full HF+PEFT LoRA: `configs/sft/full_gpu.yaml`. DPO / RL start in Phases 4–7.
+Phases 3–4 CPU smoke are default. Optional full HF+PEFT / TRL: `configs/sft/full_gpu.yaml`, `configs/dpo/full_gpu.yaml`. Continual learning / RL start in Phases 5–7.
 
 ## Dataset
 
@@ -105,7 +120,7 @@ Deterministic seeds for case generation and hashing embeddings. Policy effective
 
 ## Limitations
 
-Synthetic environment; Phase 2 agents are heuristic tool-users; Phase 3 distilled smoke replays teacher trajectories and trains a tiny CPU adapter only — not a claim of full LoRA student quality. See `docs/LIMITATIONS.md`.
+Synthetic environment; Phase 2 agents are heuristic tool-users; Phase 3–4 smoke students replay teacher/chosen trajectories and train tiny CPU adapters only — not a claim of full LoRA/TRL quality. See `docs/LIMITATIONS.md`.
 
 ## Citation
 
