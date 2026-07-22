@@ -39,4 +39,7 @@ python scripts/serve_playback.py   # http://127.0.0.1:8000
 
 Resume copy: `portfolio_export/RESUME_BULLETS.md`  
 Website JSON: `portfolio_export/website_card.json`  
-Report: `docs/TECHNICAL_REPORT.md`
+Report: `docs/TECHNICAL_REPORT.md`  
+**Public site:** https://ishikanahar.github.io/policyshift/  
+Optional GPU: `docs/FULL_GPU.md`, `notebooks/PolicyShift_Full_GPU.ipynb`
+

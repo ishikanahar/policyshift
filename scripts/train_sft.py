@@ -16,7 +16,7 @@ def main() -> None:
     parser.add_argument("--config", type=Path, default=Path("configs/smoke/phase3_sft.yaml"))
     parser.add_argument("--train-file", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, default=None)
-    parser.add_argument("--smoke", action="store_true", default=None)
+    parser.add_argument("--smoke", action=argparse.BooleanOptionalAction, default=None)
     parser.add_argument("--max-steps", type=int, default=None)
     args = parser.parse_args()
 
@@ -27,7 +27,7 @@ def main() -> None:
     output_dir = args.output_dir or Path(
         str(cfg_raw.get("output_dir", "artifacts/experiments/sft-smoke/checkpoints"))
     )
-    smoke = cfg_raw.get("smoke", True) if args.smoke is None else args.smoke
+    smoke = bool(cfg_raw.get("smoke", True)) if args.smoke is None else bool(args.smoke)
     max_steps = args.max_steps if args.max_steps is not None else int(cfg_raw.get("max_steps", 2))
 
     if not train_file.exists():

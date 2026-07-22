@@ -5,13 +5,12 @@ max_steps: 50
 learning_rate: 5.0e-5
 beta: 0.1
 model_name_or_path: Qwen/Qwen2.5-0.5B-Instruct
-train_file: data/preferences/smoke/dpo_train.jsonl  # or path from generate_preference_pairs.py
-output_dir: artifacts/experiments/dpo-full/checkpoints
+train_file: data/full/dpo/dpo_train.jsonl
+output_dir: artifacts/experiments/dpo-qwen05b/checkpoints
 per_device_train_batch_size: 1
 lora_r: 8
 lora_alpha: 16
 notes: |
   pip install 'policyshift[training]'
-  python scripts/generate_preference_pairs.py --n-cases 80 --out data/preferences/full
-  python scripts/train_dpo.py --config configs/dpo/full_gpu.yaml --no-smoke \
-    --train-file data/preferences/full/dpo_train.jsonl
+  python scripts/prepare_full_training_data.py --n-cases 80 --out-root data/full
+  python scripts/train_dpo.py --config configs/dpo/full_gpu.yaml --no-smoke

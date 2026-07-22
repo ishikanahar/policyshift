@@ -1,0 +1,14 @@
+smoke: false
+seed: 42
+max_steps: 20
+learning_rate: 5.0e-6
+model_name_or_path: Qwen/Qwen2.5-0.5B-Instruct
+train_file: data/full/rl/rl_pairs.jsonl
+output_dir: artifacts/experiments/rl-qwen05b/checkpoints
+per_device_train_batch_size: 1
+lora_r: 8
+lora_alpha: 16
+notes: |
+  pip install 'policyshift[training]'
+  python scripts/prepare_full_training_data.py --n-cases 80
+  python scripts/train_rl.py --config configs/rl/full_gpu.yaml --no-smoke

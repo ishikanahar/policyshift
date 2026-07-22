@@ -33,8 +33,9 @@ python scripts/serve_playback.py
 
 Static-only (no FastAPI): `python scripts/serve_playback.py --static`
 
-After push, GitHub Pages can serve `docs/site/` (workflow: `.github/workflows/pages.yml`).
-Expected URL once Pages is enabled: `https://ishikanahar.github.io/policyshift/`
+After push, the public site is: **https://ishikanahar.github.io/policyshift/**
+
+Optional full GPU training (Colab / local NVIDIA): see `docs/FULL_GPU.md` and `notebooks/PolicyShift_Full_GPU.ipynb`.
 
 ## Phase 2 smoke results (real artifact: `phase2-smoke-local`)
 
