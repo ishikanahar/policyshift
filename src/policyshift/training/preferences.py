@@ -245,6 +245,29 @@ def pairs_to_dpo_examples(
                     {"role": "assistant", "content": trajectory_to_completion(rejected)},
                 ],
                 "failure_categories": [f.value for f in pair.failure_categories],
+                "domain": case.domain.value,
+                "effective_date": case.occurred_at.isoformat(),
+                "user_request": prompt,
+                "chosen_tool_calls": [
+                    {"tool": a.tool_name, "arguments": a.arguments} for a in chosen.actions
+                ],
+                "rejected_tool_calls": [
+                    {"tool": a.tool_name, "arguments": a.arguments} for a in rejected.actions
+                ],
+                "failure_type": (
+                    pair.failure_categories[0].value if pair.failure_categories else None
+                ),
+                "verifier_scores": {
+                    "chosen_reward": chosen.total_reward,
+                    "rejected_reward": rejected.total_reward,
+                    "reward_margin": pair.reward_margin,
+                },
+                "provenance": {
+                    "source": pair.source.value,
+                    "pair_id": pair.pair_id,
+                    "chosen_trajectory_id": pair.chosen_trajectory_id,
+                    "rejected_trajectory_id": pair.rejected_trajectory_id,
+                },
             }
         )
     return rows

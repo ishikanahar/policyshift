@@ -259,6 +259,9 @@ nav a:hover { color: var(--accent); }
   font-size: 0.9rem;
   max-width: 40rem;
 }
+.badge-real { color: var(--good); font-weight: 700; }
+.badge-smoke { color: var(--accent-hot); font-weight: 700; }
+.badge-pending { color: var(--muted); font-weight: 600; }
 
 .skills-rail {
   display: grid;

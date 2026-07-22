@@ -1,0 +1,65 @@
+# PolicyShift full post-training study (real GPU runs)
+
+# Research question:
+# When enterprise policies change, which adaptation strategy best preserves
+# task performance while preventing stale-policy and unsafe tool actions?
+
+seed: 42
+smoke: false
+model_name_or_path: Qwen/Qwen2.5-1.5B-Instruct
+# Fallback if VRAM is tight: Qwen/Qwen2.5-0.5B-Instruct
+
+train_versions: ["1.0", "1.1"]
+eval_versions: ["2.0"]
+forbidden_train_versions: ["2.0"]
+
+n_train: 80
+n_eval: 40
+
+methods:
+  - base
+  - rag
+  - sft
+  - sft_rag
+  - dpo
+  - dpo_rag
+  # - oracle  # optional upper bound
+
+sft:
+  max_steps: 300
+  learning_rate: 2.0e-4
+  lora_r: 16
+  lora_alpha: 32
+  max_seq_length: 1024
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 8
+  fp16: true
+
+dpo:
+  max_steps: 150
+  learning_rate: 5.0e-5
+  beta: 0.1
+  lora_r: 8
+  lora_alpha: 16
+
+ablations:
+  - remove_version_metadata
+  - semantic_only_retrieval
+  - no_hard_negatives
+  - preference_data_25
+  - preference_data_50
+  - with_without_rag
+
+continual:
+  budgets: [10, 25, 50]
+
+seeds: [42]  # expand to [42, 43, 44] when compute allows
+
+artifact_root: artifacts/experiments/shift-study
+data_root: data/shift
+
+hypothesis: >
+  Preference optimization reduces unsafe tool actions more reliably than it
+  updates factual policy knowledge; DPO + version-aware RAG should win the
+  safety–freshness tradeoff under held-out policy shift. Publish whatever
+  the traces show.

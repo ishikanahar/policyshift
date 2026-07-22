@@ -270,12 +270,56 @@ function wireDemo() {
   }, 9000);
 }
 
+function renderStudy(payload) {
+  const badge = document.getElementById("study-badge");
+  const table = document.getElementById("study-table");
+  const limit = document.getElementById("study-limit");
+  const q = document.getElementById("study-question");
+  if (!badge || !table) return;
+
+  if (!payload) {
+    badge.textContent = "Pending real training run — infrastructure ready";
+    badge.className = "run-hint badge-pending";
+    table.innerHTML =
+      "<article class=\"impact-item\"><div class=\"label\">Next step</div><div class=\"detail\">Run GPU: python scripts/run_shift_experiment.py --config configs/study/full.yaml --no-smoke</div></article>";
+    if (limit) {
+      limit.textContent =
+        "Illustrative demo above ≠ experimental evidence. Smoke and real results are labeled separately.";
+    }
+    return;
+  }
+
+  if (q && payload.research_question) q.textContent = payload.research_question;
+  const kind = payload.result_kind || (payload.smoke ? "smoke" : "real_training_run");
+  badge.textContent =
+    kind === "real_training_run" ? "Real training run" : kind === "smoke" ? "Smoke test — not final evidence" : String(kind);
+  badge.className = "run-hint " + (kind === "real_training_run" ? "badge-real" : "badge-smoke");
+
+  const rows = payload.method_comparison || [];
+  table.innerHTML = rows
+    .map((r) => {
+      const psrs = r.psrs != null ? Number(r.psrs).toFixed(3) : "—";
+      const task = r.task_success != null ? Number(r.task_success).toFixed(2) : "—";
+      const safe = r.safe_action_rate != null ? Number(r.safe_action_rate).toFixed(2) : "—";
+      return `<article class="impact-item"><div class="value">${psrs}</div><div class="label">${r.method}</div><div class="detail">task ${task} · safe ${safe} · ${r.status || r.result_kind}</div></article>`;
+    })
+    .join("");
+  if (limit) limit.textContent = payload.honest_limit || "";
+}
+
 async function boot() {
   renderTabs();
   renderCopy();
   resetTrace();
   wireDemo();
   renderImpact(window.POLICYSHIFT_CARD);
+  renderStudy(null);
+  try {
+    const study = await fetch("./study_results.json", { cache: "no-store" });
+    if (study.ok) renderStudy(await study.json());
+  } catch (_) {
+    /* pending */
+  }
   try {
     const res = await fetch("/api/portfolio", { cache: "no-store" });
     if (res.ok) renderImpact(await res.json());

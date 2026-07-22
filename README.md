@@ -20,7 +20,16 @@ python scripts/serve_playback.py   # http://127.0.0.1:8000
 python -m pytest tests/unit tests/integration -q
 ```
 
-Resume bullets: `portfolio_export/RESUME_BULLETS.md` · Report: `docs/TECHNICAL_REPORT.md`
+Resume bullets: `portfolio_export/RESUME_BULLETS.md` · Report: `docs/TECHNICAL_REPORT.md`  
+**Stand out for Cohere:** `docs/STAND_OUT_FOR_COHERE.md` · Full study plan: `docs/POST_TRAINING_STUDY.md`
+
+```bash
+# Smoke wiring (not final evidence)
+make shift-smoke
+
+# Real LoRA study (GPU)
+make setup && make data && make shift-full
+```
 
 ## Website (local)
 
