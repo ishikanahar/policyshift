@@ -1,0 +1,27 @@
+# Clean temporal shift DPO: warm-start from clean SFT; train only on 1.0 + 1.1
+smoke: false
+seed: 42
+num_train_epochs: 1
+max_steps: -1
+learning_rate: 0.00001
+beta: 0.1
+lora_r: 16
+lora_alpha: 32
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 1
+gradient_checkpointing: true
+model_name_or_path: Qwen/Qwen2.5-0.5B-Instruct
+base_model: Qwen/Qwen2.5-0.5B-Instruct
+sft_adapter_path: artifacts/experiments/shift-clean/sft/checkpoints/adapter
+init_from: artifacts/experiments/shift-clean/sft/checkpoints/adapter
+train_file: data/shift_clean/dpo/dpo_train.jsonl
+output_dir: artifacts/experiments/shift-clean/dpo/checkpoints
+policy_versions: "1.0,1.1"
+require_shift_validation: true
+max_length: 1536
+max_seq_length: 1536
+max_prompt_length: 1152
+max_completion_length: 384
+notes: |
+  Clean shift-clean DPO. Initializes from shift-clean SFT only.
+  python scripts/run_clean_shift_experiment.py --train-dpo

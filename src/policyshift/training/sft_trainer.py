@@ -24,7 +24,8 @@ class TrainConfig:
     train_file: str
     model_name_or_path: str = "smoke-tiny-policylm"
     smoke: bool = True
-    max_steps: int = 2
+    max_steps: int | None = 2
+    num_train_epochs: float = 1.0
     learning_rate: float = 1e-3
     seed: int = 42
     lora_r: int = 4
@@ -115,9 +116,10 @@ def _smoke_train_torch(cfg: TrainConfig, texts: list[str]) -> dict[str, Any]:
     losses: list[float] = []
     started = time.perf_counter()
     step = 0
-    while step < cfg.max_steps:
+    max_steps = int(cfg.max_steps or 2)
+    while step < max_steps:
         for text in texts:
-            if step >= cfg.max_steps:
+            if step >= max_steps:
                 break
             ids = encode(text)
             inputs = ids[:-1].unsqueeze(0)
@@ -171,7 +173,7 @@ def _smoke_train_numpy(cfg: TrainConfig, texts: list[str]) -> dict[str, Any]:
     started = time.perf_counter()
     # Synthetic decreasing loss curve tied to data hash (deterministic, not fabricated metrics claim)
     base = float(int(sha256_text("".join(texts[:3]))[:8], 16) % 1000) / 1000.0 + 1.0
-    for step in range(cfg.max_steps):
+    for step in range(int(cfg.max_steps or 2)):
         loss = base * math.exp(-0.3 * (step + 1)) + 0.05 * float(rng.random())
         losses.append(loss)
     elapsed = time.perf_counter() - started
@@ -261,6 +263,9 @@ def load_checkpoint(path: str | Path) -> dict[str, Any]:
 
 def run_sft(cfg: TrainConfig) -> dict[str, Any]:
     """Run smoke or (future) full SFT. Always writes metrics + checkpoint metadata."""
+    from policyshift.training.shift_clean import require_shift_clean_validation
+
+    require_shift_clean_validation(cfg.train_file)
     texts = load_train_texts(
         cfg.train_file,
         limit=32 if cfg.smoke else None,
@@ -362,17 +367,22 @@ def _run_full_hf_lora(cfg: TrainConfig, texts: list[str]) -> dict[str, Any]:
             return item
 
     dataset = TextDataset(texts)
-    args = TrainingArguments(
-        output_dir=cfg.output_dir,
-        max_steps=cfg.max_steps,
-        per_device_train_batch_size=cfg.per_device_train_batch_size,
-        gradient_accumulation_steps=cfg.gradient_accumulation_steps,
-        learning_rate=cfg.learning_rate,
-        logging_steps=cfg.logging_steps,
-        save_steps=cfg.save_steps,
-        report_to=[],
-        fp16=cfg.fp16,
-    )
+    ta_kwargs: dict[str, Any] = {
+        "output_dir": cfg.output_dir,
+        "num_train_epochs": cfg.num_train_epochs,
+        "per_device_train_batch_size": cfg.per_device_train_batch_size,
+        "gradient_accumulation_steps": cfg.gradient_accumulation_steps,
+        "learning_rate": cfg.learning_rate,
+        "logging_steps": cfg.logging_steps,
+        "save_strategy": "epoch",
+        "report_to": [],
+        "fp16": cfg.fp16,
+    }
+    if cfg.max_steps is not None and int(cfg.max_steps) > 0:
+        ta_kwargs["max_steps"] = int(cfg.max_steps)
+        ta_kwargs["save_steps"] = cfg.save_steps
+        ta_kwargs.pop("save_strategy", None)
+    args = TrainingArguments(**ta_kwargs)
     trainer = Trainer(
         model=model,
         args=args,
@@ -385,12 +395,20 @@ def _run_full_hf_lora(cfg: TrainConfig, texts: list[str]) -> dict[str, Any]:
     adapter_dir = str(ensure_dir(Path(cfg.output_dir) / "adapter"))
     model.save_pretrained(adapter_dir)
     tokenizer.save_pretrained(adapter_dir)
+    # Persist trainer state for provenance / auditing.
+    try:
+        trainer.save_state()
+    except Exception:
+        pass
+    global_step = int(getattr(train_result, "global_step", 0) or 0)
     return {
         "backend": "transformers-peft-lora",
         "checkpoint": adapter_dir,
         "train_loss": [float(train_result.training_loss)],
         "final_loss": float(train_result.training_loss),
-        "steps": int(cfg.max_steps),
+        "steps": global_step,
+        "num_train_epochs": cfg.num_train_epochs,
+        "n_examples": len(texts),
         "elapsed_sec": elapsed,
         "peak_memory_mb": None,
     }

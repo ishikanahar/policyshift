@@ -38,6 +38,8 @@ class DPOTrainConfig:
     max_prompt_length: int = 1152
     max_completion_length: int = 384
     per_device_train_batch_size: int = 1
+    gradient_accumulation_steps: int = 1
+    gradient_checkpointing: bool = False
     notes: str = ""
     policy_versions: list[str] | None = None
     skip_data_validation: bool = False
@@ -208,6 +210,9 @@ def load_dpo_checkpoint(path: str | Path) -> dict[str, Any]:
 
 def run_dpo(cfg: DPOTrainConfig) -> dict[str, Any]:
     """Run smoke or (documented) full DPO. Always writes metrics + checkpoint metadata."""
+    from policyshift.training.shift_clean import require_shift_clean_validation
+
+    require_shift_clean_validation(cfg.train_file)
     rows = load_dpo_rows(
         cfg.train_file,
         limit=64 if cfg.smoke else None,
@@ -361,6 +366,8 @@ def _run_full_trl_dpo(cfg: DPOTrainConfig, rows: list[dict[str, Any]]) -> dict[s
         "output_dir": cfg.output_dir,
         "num_train_epochs": cfg.num_train_epochs,
         "per_device_train_batch_size": cfg.per_device_train_batch_size,
+        "gradient_accumulation_steps": cfg.gradient_accumulation_steps,
+        "gradient_checkpointing": cfg.gradient_checkpointing,
         "learning_rate": cfg.learning_rate,
         "beta": cfg.beta,
         "logging_steps": 1,

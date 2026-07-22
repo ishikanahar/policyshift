@@ -36,7 +36,8 @@ def main() -> None:
     if args.max_steps is not None:
         max_steps: int | None = args.max_steps
     elif "max_steps" in raw:
-        max_steps = None if raw.get("max_steps") in (None, "null") else int(raw["max_steps"])
+        raw_ms = raw.get("max_steps")
+        max_steps = None if raw_ms in (None, "null", -1) else int(raw_ms)
     else:
         max_steps = 2 if smoke else None
 
@@ -50,10 +51,10 @@ def main() -> None:
             "or scripts/train_dpo_smoke.py for the end-to-end Phase 4 smoke."
         )
 
-    sft_adapter = raw.get("sft_adapter_path")
+    sft_adapter = raw.get("sft_adapter_path") or raw.get("init_from")
     if not smoke and not sft_adapter:
         raise SystemExit(
-            "Full DPO requires sft_adapter_path in the config "
+            "Full DPO requires sft_adapter_path / init_from in the config "
             "(initialize from SFT checkpoint, not raw Qwen)."
         )
 
@@ -67,7 +68,9 @@ def main() -> None:
             learning_rate=float(raw.get("learning_rate", 1e-3)),
             beta=float(raw.get("beta", 0.1)),
             seed=int(raw.get("seed", 42)),
-            model_name_or_path=str(raw.get("model_name_or_path", "smoke-tiny-dpo")),
+            model_name_or_path=str(
+                raw.get("model_name_or_path") or raw.get("base_model") or "smoke-tiny-dpo"
+            ),
             sft_adapter_path=str(sft_adapter) if sft_adapter else None,
             notes=str(raw.get("notes", "")),
             policy_versions=policy_versions,
@@ -77,6 +80,8 @@ def main() -> None:
             lora_r=int(raw.get("lora_r", 4)),
             lora_alpha=int(raw.get("lora_alpha", 8)),
             per_device_train_batch_size=int(raw.get("per_device_train_batch_size", 1)),
+            gradient_accumulation_steps=int(raw.get("gradient_accumulation_steps", 1)),
+            gradient_checkpointing=bool(raw.get("gradient_checkpointing", False)),
         )
     )
     print(metrics)

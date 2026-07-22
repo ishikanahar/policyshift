@@ -34,7 +34,13 @@ def main() -> None:
         str(cfg_raw.get("output_dir", "artifacts/experiments/sft-smoke/checkpoints"))
     )
     smoke = bool(cfg_raw.get("smoke", True)) if args.smoke is None else bool(args.smoke)
-    max_steps = args.max_steps if args.max_steps is not None else int(cfg_raw.get("max_steps", 2))
+    if args.max_steps is not None:
+        max_steps: int | None = args.max_steps
+    elif "max_steps" in cfg_raw:
+        raw_ms = cfg_raw.get("max_steps")
+        max_steps = None if raw_ms in (None, "null", -1) else int(raw_ms)
+    else:
+        max_steps = 2 if smoke else None
 
     from policyshift.training.version_filters import parse_policy_versions
 
@@ -54,11 +60,16 @@ def main() -> None:
             train_file=str(train_file),
             smoke=bool(smoke),
             max_steps=max_steps,
+            num_train_epochs=float(cfg_raw.get("num_train_epochs", 1.0)),
             model_name_or_path=str(cfg_raw.get("model_name_or_path", "smoke-tiny-policylm")),
             learning_rate=float(cfg_raw.get("learning_rate", 1e-3)),
             seed=int(cfg_raw.get("seed", 42)),
             lora_r=int(cfg_raw.get("lora_r", 4)),
             lora_alpha=int(cfg_raw.get("lora_alpha", 8)),
+            max_seq_length=int(cfg_raw.get("max_seq_length", 256)),
+            per_device_train_batch_size=int(cfg_raw.get("per_device_train_batch_size", 1)),
+            gradient_accumulation_steps=int(cfg_raw.get("gradient_accumulation_steps", 1)),
+            fp16=bool(cfg_raw.get("fp16", False)),
             notes=str(cfg_raw.get("notes", "")),
             policy_versions=policy_versions,
         )
