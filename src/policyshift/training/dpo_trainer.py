@@ -255,7 +255,18 @@ def _run_full_trl_dpo(cfg: DPOTrainConfig, rows: list[dict[str, Any]]) -> dict[s
         lora_dropout=0.05,
         target_modules=["q_proj", "v_proj"],
     )
-    model = get_peft_model(model, lora)
+    try:
+        model = get_peft_model(model, lora)
+    except ImportError as exc:
+        if "torchao" in str(exc).lower():
+            raise ImportError(
+                "PEFT/torchao version conflict. In Colab run:\n"
+                '  pip install -U "torchao>=0.16.0"\n'
+                "or:\n"
+                "  pip uninstall -y torchao\n"
+                "then re-run training."
+            ) from exc
+        raise
 
     ds = Dataset.from_list(
         [
