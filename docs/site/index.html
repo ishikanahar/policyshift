@@ -3,22 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PolicyShift — continual post-training under evolving policies</title>
-  <meta name="description" content="PolicyShift is a synthetic research benchmark for teaching tool-using agents to follow versioned enterprise policies as they change over time." />
+  <title>PolicyShift — agents that keep up when company rules change</title>
+  <meta name="description" content="Portfolio project: teach AI agents to follow changing enterprise policies — version-aware retrieval, evaluation, and post-training, with measured results." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <div class="atmosphere"></div>
+  <div class="atmosphere" aria-hidden="true"></div>
   <header class="site-header">
     <p class="brand">PolicyShift</p>
     <nav>
-      <a href="#problem">Why</a>
-      <a href="#system">System</a>
-      <a href="#results">Results</a>
-      <a href="#playback">Playback</a>
+      <a href="#why">Why it matters</a>
+      <a href="#demo">Demo</a>
+      <a href="#impact">Impact</a>
+      <a href="#skills">Skills</a>
       <a href="https://github.com/ishikanahar/policyshift" target="_blank" rel="noreferrer">GitHub</a>
     </nav>
   </header>
@@ -26,135 +26,129 @@
   <main>
     <section class="hero">
       <h1 class="brand-hero">PolicyShift</h1>
-      <p class="lede" id="subtitle">
-        A research benchmark for teaching tool-using agents to follow enterprise policies
-        that change over time — without clinging to stale rules.
+      <p class="lede">
+        When your company’s SOPs, safety rules, or AI policies update next quarter —
+        can your agents still do the right thing?
       </p>
       <div class="cta-row">
-        <a class="cta" href="#system">See how it works</a>
-        <a class="cta ghost" href="https://github.com/ishikanahar/policyshift" target="_blank" rel="noreferrer">Repository</a>
+        <a class="cta" href="#why">See the business problem</a>
+        <a class="cta ghost" href="https://github.com/ishikanahar/policyshift" target="_blank" rel="noreferrer">View code</a>
       </div>
     </section>
 
-    <section id="problem" class="panel">
-      <h2>The problem</h2>
+    <section id="why" class="panel">
+      <h2>Why a recruiter / hiring team should care</h2>
       <p class="support">
-        Real organizations rewrite procedures: materials receiving, lab access, AI/data governance.
-        An agent must apply the policy that was <em>valid at the event time</em>, adapt when versions
-        update, keep still-valid skills, and refuse unsafe shortcuts.
+        This isn’t a toy chatbot. It’s a full evaluation + training loop for
+        <strong>tool-using agents under changing rules</strong> — the same failure mode
+        that shows up in ops, compliance, support, and internal AI copilots.
       </p>
-      <div class="split-copy">
-        <p>
-          Retrieval alone is not enough — an agent can fetch the right document and still act on an
-          outdated clause. PolicyShift builds a fully synthetic, executable environment so we can
-          compare post-training methods under matched evaluation, with deterministic verifiers
-          instead of hand-wavy LLM-as-judge scores.
-        </p>
-        <p>
-          Three domains × three versions (1.0 → 1.1 → 2.0) × 120+ tool-use cases. Methods under study:
-          baseline, version-aware RAG, distillation, DPO, continual replay, TeacherBudget selection,
-          and verifier-guided RL (CPU smoke paths by default; optional GPU LoRA documented).
-        </p>
+
+      <div class="scenario-stage">
+        <div class="scenario-tabs" role="tablist" aria-label="Industry scenarios">
+          <button type="button" class="tab is-active" data-scene="ops" role="tab" aria-selected="true">Ops / supply chain</button>
+          <button type="button" class="tab" data-scene="lab" role="tab" aria-selected="false">Lab / safety</button>
+          <button type="button" class="tab" data-scene="ai" role="tab" aria-selected="false">AI governance</button>
+        </div>
+
+        <div class="scenario-board" id="scenario-board">
+          <div class="scene-copy">
+            <p class="scene-kicker" id="scene-kicker">Ops example</p>
+            <h3 id="scene-title">Materials receiving policy just got stricter</h3>
+            <p id="scene-body">
+              Last month: release if the COA is present. This month: dual approval + quarantine
+              if temperature logs are incomplete. An agent trained on last month’s SOP will
+              “helpfully” release inventory that should be held — expensive and unsafe.
+            </p>
+            <p class="scene-map" id="scene-map">Maps to: warehouse ops, quality, ERP copilots</p>
+          </div>
+          <div class="scene-visual" aria-hidden="true">
+            <div class="policy-chip stale" id="chip-stale">v1.0 · outdated</div>
+            <div class="policy-chip current" id="chip-current">v2.0 · effective now</div>
+            <div class="agent-pulse" id="agent-pulse">
+              <span class="pulse-ring"></span>
+              <span class="pulse-label">Agent decision</span>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section id="system" class="panel">
-      <h2>System structure</h2>
-      <p class="support">How a case moves through the stack — from versioned policy to scored trajectory.</p>
+    <section id="demo" class="panel">
+      <h2>Watch the failure mode</h2>
+      <p class="support">
+        Toggle between a naive agent and a version-aware path. Same case — different outcome.
+      </p>
 
-      <figure class="diagram" aria-label="PolicyShift pipeline diagram">
-        <svg viewBox="0 0 960 220" role="img" class="diagram-svg">
-          <defs>
-            <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-              <path d="M0,0 L6,3 L0,6 Z" fill="#0b6e4f" />
-            </marker>
-            <linearGradient id="nodeFill" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#f7fafc" />
-              <stop offset="100%" stop-color="#dce8e2" />
-            </linearGradient>
-          </defs>
-          <!-- nodes -->
-          <g class="flow-node" transform="translate(20,60)">
-            <rect width="150" height="90" rx="4" fill="url(#nodeFill)" stroke="#0b6e4f" stroke-width="1.5"/>
-            <text x="75" y="38" text-anchor="middle" class="node-title">Versioned policies</text>
-            <text x="75" y="58" text-anchor="middle" class="node-sub">3 domains · v1→v2</text>
-          </g>
-          <g class="flow-node" transform="translate(210,60)">
-            <rect width="150" height="90" rx="4" fill="url(#nodeFill)" stroke="#0b6e4f" stroke-width="1.5"/>
-            <text x="75" y="38" text-anchor="middle" class="node-title">Case + tools</text>
-            <text x="75" y="58" text-anchor="middle" class="node-sub">event · evidence</text>
-          </g>
-          <g class="flow-node" transform="translate(400,60)">
-            <rect width="150" height="90" rx="4" fill="url(#nodeFill)" stroke="#0b6e4f" stroke-width="1.5"/>
-            <text x="75" y="38" text-anchor="middle" class="node-title">Retriever / agent</text>
-            <text x="75" y="58" text-anchor="middle" class="node-sub">RAG · SFT · DPO · RL</text>
-          </g>
-          <g class="flow-node" transform="translate(590,60)">
-            <rect width="150" height="90" rx="4" fill="url(#nodeFill)" stroke="#0b6e4f" stroke-width="1.5"/>
-            <text x="75" y="38" text-anchor="middle" class="node-title">Verifiers</text>
-            <text x="75" y="58" text-anchor="middle" class="node-sub">fresh · safe · grounded</text>
-          </g>
-          <g class="flow-node" transform="translate(780,60)">
-            <rect width="150" height="90" rx="4" fill="url(#nodeFill)" stroke="#c45c26" stroke-width="1.8"/>
-            <text x="75" y="38" text-anchor="middle" class="node-title">Artifacts</text>
-            <text x="75" y="58" text-anchor="middle" class="node-sub">metrics · traces</text>
-          </g>
-          <!-- arrows -->
-          <line x1="170" y1="105" x2="208" y2="105" stroke="#0b6e4f" stroke-width="2" marker-end="url(#arrow)"/>
-          <line x1="360" y1="105" x2="398" y2="105" stroke="#0b6e4f" stroke-width="2" marker-end="url(#arrow)"/>
-          <line x1="550" y1="105" x2="588" y2="105" stroke="#0b6e4f" stroke-width="2" marker-end="url(#arrow)"/>
-          <line x1="740" y1="105" x2="778" y2="105" stroke="#0b6e4f" stroke-width="2" marker-end="url(#arrow)"/>
-        </svg>
-        <figcaption>End-to-end loop: policies and cases feed agents; verifiers score trajectories into inspectable artifacts.</figcaption>
-      </figure>
+      <div class="toggle-row">
+        <button type="button" class="mode-btn is-active" data-mode="naive" id="btn-naive">Naive path</button>
+        <button type="button" class="mode-btn" data-mode="aware" id="btn-aware">Version-aware path</button>
+      </div>
 
-      <h3 class="subhead">Policy versions over time</h3>
-      <figure class="diagram timeline-wrap" aria-label="Policy version timeline">
-        <svg viewBox="0 0 960 140" class="diagram-svg">
-          <line x1="80" y1="70" x2="880" y2="70" stroke="#1a2332" stroke-opacity="0.25" stroke-width="3"/>
-          <g transform="translate(140,40)">
-            <circle cx="0" cy="30" r="10" fill="#0b6e4f"/>
-            <text x="0" y="8" text-anchor="middle" class="node-title">v1.0</text>
-            <text x="0" y="68" text-anchor="middle" class="node-sub">baseline rules</text>
-          </g>
-          <g transform="translate(400,40)">
-            <circle cx="0" cy="30" r="10" fill="#0b6e4f"/>
-            <text x="0" y="8" text-anchor="middle" class="node-title">v1.1</text>
-            <text x="0" y="68" text-anchor="middle" class="node-sub">patches · exceptions</text>
-          </g>
-          <g transform="translate(700,40)">
-            <circle cx="0" cy="30" r="12" fill="#c45c26"/>
-            <text x="0" y="8" text-anchor="middle" class="node-title">v2.0</text>
-            <text x="0" y="68" text-anchor="middle" class="node-sub">stricter / new gates</text>
-          </g>
-          <text x="480" y="125" text-anchor="middle" class="node-sub">Agents must pick the version effective at the case timestamp — not the newest forever.</text>
-        </svg>
-      </figure>
+      <div class="decision-stage" id="decision-stage" data-mode="naive">
+        <div class="decision-col">
+          <p class="col-label">What the agent uses</p>
+          <p class="col-main" id="dec-source">Stale PDF excerpt from last year’s training pack</p>
+        </div>
+        <div class="decision-col">
+          <p class="col-label">Action</p>
+          <p class="col-main" id="dec-action">Approve release</p>
+        </div>
+        <div class="decision-col outcome" id="dec-outcome-wrap">
+          <p class="col-label">Outcome</p>
+          <p class="col-main" id="dec-outcome">Policy miss · unsafe release</p>
+        </div>
+      </div>
 
-      <h3 class="subhead">Method stack</h3>
-      <div class="method-rail" role="list">
-        <div class="method-step" role="listitem"><span class="step-num">C0</span><strong>Baseline</strong><span>no retrieval</span></div>
-        <div class="method-step" role="listitem"><span class="step-num">C1</span><strong>RAG</strong><span>date-filtered retrieve</span></div>
-        <div class="method-step" role="listitem"><span class="step-num">C2–3</span><strong>Continual</strong><span>sequential ± replay</span></div>
-        <div class="method-step" role="listitem"><span class="step-num">C4</span><strong>Distill</strong><span>teacher trajectories</span></div>
-        <div class="method-step" role="listitem"><span class="step-num">C5</span><strong>DPO</strong><span>current vs stale pairs</span></div>
-        <div class="method-step" role="listitem"><span class="step-num">C6</span><strong>RL</strong><span>verifier rewards</span></div>
+      <div class="flow-strip" aria-hidden="true">
+        <span>Case arrives</span>
+        <span class="flow-arrow">→</span>
+        <span>Pick policy version by date</span>
+        <span class="flow-arrow">→</span>
+        <span>Call tools + evidence</span>
+        <span class="flow-arrow">→</span>
+        <span>Verifier scores result</span>
       </div>
     </section>
 
-    <section id="results" class="panel">
-      <h2>Measured smoke highlights</h2>
-      <p class="support">From executed experiment artifacts — not invented scores.</p>
-      <div class="highlights" id="highlights"></div>
-      <ul class="methods" id="methods"></ul>
+    <section id="impact" class="panel">
+      <h2>Measured impact (smoke runs)</h2>
+      <p class="support">Real numbers from executed experiments — framed the way a hiring manager reads them.</p>
+      <div class="impact-grid" id="impact-grid">
+        <!-- filled by JS -->
+      </div>
       <p class="disclaimer" id="disclaimer"></p>
     </section>
 
-    <section id="playback" class="panel">
+    <section id="skills" class="panel">
+      <h2>What this shows I can do for your team</h2>
+      <div class="skills-rail">
+        <article>
+          <h3>Agent evaluation</h3>
+          <p>Build executable test beds (tools, verifiers, failure taxonomies) so “it works” means measurable, not vibes.</p>
+        </article>
+        <article>
+          <h3>RAG that respects time</h3>
+          <p>Date-filtered retrieval cut stale@5 from <strong>0.45 → 0.00</strong> in smoke — directly relevant to compliance and SOP search.</p>
+        </article>
+        <article>
+          <h3>Post-training loops</h3>
+          <p>Wire teacher trajectories, preference pairs (current vs stale), and budgeted labeling — the plumbing behind production fine-tunes.</p>
+        </article>
+        <article>
+          <h3>Shipping discipline</h3>
+          <p>Tests, artifact export, public demo, honest limitations. No fake SOTA claims.</p>
+        </article>
+      </div>
+      <div class="hire-cta">
+        <a class="cta" href="https://github.com/ishikanahar/policyshift" target="_blank" rel="noreferrer">Explore the repo</a>
+        <a class="cta ghost" href="#playback">Peek at experiment artifacts</a>
+      </div>
+    </section>
+
+    <section id="playback" class="panel quiet">
       <h2>Artifact playback</h2>
-      <p class="support" id="playback-help">
-        Inspect exported experiment summaries and sample trajectories from real smoke runs.
-      </p>
+      <p class="support" id="playback-help">Sample outputs from real runs (for technical reviewers).</p>
       <div id="playback-panel" class="playback-hidden">
         <label class="field">
           Experiment
@@ -164,14 +158,16 @@
         <h3>Sample trajectories</h3>
         <pre id="traj-view" class="code-block">—</pre>
       </div>
+      <!-- keep hidden hooks for old JS -->
+      <div id="highlights" class="visually-hidden" aria-hidden="true"></div>
+      <ul id="methods" class="visually-hidden" aria-hidden="true"></ul>
     </section>
   </main>
 
   <footer>
     <p>
-      Synthetic research benchmark · Apache-2.0 ·
-      <a href="https://github.com/ishikanahar/policyshift">GitHub</a> ·
-      <a href="https://ishikanahar.github.io/policyshift/">Live site</a>
+      Built as a hiring portfolio + research sandbox · Apache-2.0 ·
+      <a href="https://github.com/ishikanahar/policyshift">GitHub</a>
     </p>
   </footer>
   <script src="./data.js"></script>
