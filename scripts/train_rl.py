@@ -79,7 +79,27 @@ def run_full_trl_grpo(cfg: dict, rows: list[dict], out_dir: Path) -> dict:
         lora_dropout=0.05,
         target_modules=["q_proj", "v_proj"],
     )
-    model = get_peft_model(model, lora)
+    try:
+        model = get_peft_model(model, lora)
+    except ImportError as exc:
+        # Common on Colab: peft expects newer torchao than the environment ships.
+        note = (
+            f"Full RL LoRA unavailable ({exc}). "
+            "Falling back to CPU RLOO-style smoke adapter. "
+            "SFT/DPO are the primary post-training evidence; RL is optional."
+        )
+        metrics = run_rl_smoke_train(
+            rows,
+            RLTrainConfig(
+                output_dir=str(out_dir),
+                smoke=True,
+                max_steps=int(cfg.get("max_steps", 8)),
+                seed=int(cfg.get("seed", 42)),
+                notes=note,
+            ),
+        )
+        metrics["note"] = note
+        return metrics
 
     # Minimal prompt dataset for GRPO; reward is length/proxy — replace with verifier reward in research runs.
     prompts = [f"Resolve policy case {r['case_id']}: prefer {r['good']}" for r in rows]
