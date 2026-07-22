@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PolicyShift Interactive Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #14201c;
+      --muted: #5c6b64;
+      --accent: #0f6b4c;
+      --hot: #d4552a;
+      --bad: #b42318;
+      --good: #0f6b4c;
+      --bg: #eef3ef;
+      --panel: #fffdf9;
+      --font-d: "Fraunces", Georgia, serif;
+      --font-b: "DM Sans", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: var(--font-b);
+      color: var(--ink);
+      background:
+        radial-gradient(700px 320px at 100% 0%, rgba(212,85,42,.2), transparent 55%),
+        radial-gradient(800px 400px at 0% 20%, rgba(15,107,76,.16), transparent 50%),
+        var(--bg);
+      padding: 1rem;
+    }
+    .widget {
+      max-width: 920px;
+      margin: 0 auto;
+      background: var(--panel);
+      border: 1px solid rgba(20,32,28,.1);
+      min-height: calc(100% - 0.5rem);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .top {
+      padding: 1.1rem 1.25rem 0.85rem;
+      border-bottom: 1px solid rgba(20,32,28,.1);
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+    .brand { font-family: var(--font-d); font-size: 1.45rem; margin: 0; letter-spacing: -.03em; }
+    .tag { color: var(--muted); font-size: .9rem; margin: 0; }
+    .body { padding: 1.1rem 1.25rem 1.35rem; flex: 1; display: grid; gap: 1rem; }
+    .label { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: var(--hot); margin: 0 0 .45rem; }
+    .tabs, .modes { display: flex; flex-wrap: wrap; gap: .45rem; }
+    button {
+      font: inherit; font-weight: 700; cursor: pointer;
+      border: 1px solid rgba(20,32,28,.18);
+      background: transparent; color: var(--ink);
+      padding: .55rem .85rem; border-radius: 999px;
+      transition: transform .15s ease, background .15s ease, color .15s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    button.active { background: var(--ink); color: #f4f7f2; border-color: var(--ink); }
+    button.primary { background: var(--accent); color: #fff; border-color: var(--accent); border-radius: 4px; padding: .7rem 1.1rem; }
+    button.primary:disabled { opacity: .55; cursor: wait; }
+    .grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 1rem; }
+    @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      border-top: 2px solid var(--accent);
+      padding-top: .75rem;
+    }
+    h2 { font-family: var(--font-d); font-size: 1.35rem; margin: 0 0 .55rem; line-height: 1.15; }
+    p { margin: 0 0 .65rem; color: var(--muted); line-height: 1.45; }
+    .map { font-weight: 700; color: var(--ink); font-size: .92rem; }
+    .stage {
+      background: linear-gradient(145deg, rgba(15,107,76,.08), rgba(212,85,42,.08));
+      border: 1px solid rgba(20,32,28,.08);
+      padding: 1rem;
+      min-height: 220px;
+    }
+    .step {
+      display: flex; gap: .65rem; align-items: flex-start;
+      padding: .45rem 0; opacity: .35; transform: translateX(-4px);
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    .step.on { opacity: 1; transform: none; }
+    .step.done .dot { background: var(--good); }
+    .step.fail .dot { background: var(--bad); }
+    .dot {
+      width: 10px; height: 10px; margin-top: .35rem; border-radius: 50%;
+      background: var(--muted); flex: 0 0 auto;
+    }
+    .step strong { display: block; font-size: .95rem; color: var(--ink); }
+    .step span { font-size: .85rem; color: var(--muted); }
+    .result {
+      margin-top: .85rem; padding: .75rem .85rem; font-weight: 700;
+      border-left: 3px solid var(--muted); color: var(--muted);
+      min-height: 3rem; transition: all .25s ease;
+    }
+    .result.bad { border-color: var(--bad); color: var(--bad); background: rgba(180,35,24,.06); }
+    .result.good { border-color: var(--good); color: var(--good); background: rgba(15,107,76,.08); }
+    .metrics {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem;
+      margin-top: .25rem;
+    }
+    @media (max-width: 560px) { .metrics { grid-template-columns: 1fr; } }
+    .metric .v { font-family: var(--font-d); font-size: 1.8rem; color: var(--accent); line-height: 1; }
+    .metric .l { font-size: .82rem; color: var(--muted); margin-top: .25rem; font-weight: 600; }
+    .actions { display: flex; flex-wrap: wrap; gap: .55rem; align-items: center; }
+    .hint { font-size: .85rem; color: var(--muted); }
+    footer {
+      padding: .75rem 1.25rem; border-top: 1px solid rgba(20,32,28,.1);
+      font-size: .8rem; color: var(--muted);
+      display: flex; justify-content: space-between; gap: .75rem; flex-wrap: wrap;
+    }
+    footer a { color: var(--accent); font-weight: 700; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="widget" id="ps-embed">
+    <div class="top">
+      <div>
+        <p class="brand">PolicyShift</p>
+        <p class="tag">Interactive demo · what breaks when company policies change</p>
+      </div>
+    </div>
+    <div class="body">
+      <div>
+        <p class="label">Pick an industry scenario</p>
+        <div class="tabs" id="tabs"></div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h2 id="title">—</h2>
+          <p id="body">—</p>
+          <p class="map" id="map">—</p>
+          <div class="actions" style="margin-top:1rem">
+            <button type="button" class="mode-btn active" data-mode="naive" id="mode-naive">Naive agent</button>
+            <button type="button" class="mode-btn" data-mode="aware" id="mode-aware">Version-aware agent</button>
+          </div>
+          <div class="actions" style="margin-top:.75rem">
+            <button type="button" class="primary" id="run">Run decision →</button>
+            <span class="hint" id="hint">Click run to animate the agent path</span>
+          </div>
+        </div>
+
+        <div class="stage" aria-live="polite">
+          <p class="label">Live decision trace</p>
+          <div id="steps"></div>
+          <div class="result" id="result">Waiting to run…</div>
+        </div>
+      </div>
+
+      <div>
+        <p class="label">Measured smoke results from the full project</p>
+        <div class="metrics">
+          <div class="metric"><div class="v">0.75</div><div class="l">Task success with version-aware RAG (was 0.58)</div></div>
+          <div class="metric"><div class="v">0.00</div><div class="l">Stale docs in top-5 retrieval (was 0.45)</div></div>
+          <div class="metric"><div class="v">80%</div><div class="l">Fewer teacher calls under a fixed budget</div></div>
+        </div>
+      </div>
+    </div>
+    <footer>
+      <span>Synthetic demo for hiring portfolio · not a production claim</span>
+      <a href="https://ishikanahar.github.io/policyshift/" target="_blank" rel="noreferrer">Full project page</a>
+      <a href="https://github.com/ishikanahar/policyshift" target="_blank" rel="noreferrer">GitHub</a>
+    </footer>
+  </div>
+
+  <script>
+(function () {
+  const SCENES = {
+    ops: {
+      name: "Ops / supply chain",
+      title: "Receiving SOP got stricter this quarter",
+      body: "Old rule: release if COA exists. New rule: quarantine + dual approval when temperature logs are incomplete. Stale agents still rubber-stamp releases.",
+      map: "Relevant to: warehouse ops · quality · ERP / WMS copilots",
+      naive: {
+        steps: [
+          ["Read case", "Inbound lot, missing continuous temp log"],
+          ["Grab policy", "Uses last year’s PDF excerpt (v1.0)"],
+          ["Decide", "Approve release into inventory"],
+        ],
+        result: "FAIL · unsafe release against current SOP",
+        good: false,
+      },
+      aware: {
+        steps: [
+          ["Read case", "Inbound lot, missing continuous temp log"],
+          ["Resolve version", "Selects policy effective at event time (v2.0)"],
+          ["Decide", "Quarantine + request dual approval"],
+        ],
+        result: "PASS · held safely under current SOP",
+        good: true,
+      },
+    },
+    lab: {
+      name: "Lab / safety",
+      title: "Instrument access rules changed overnight",
+      body: "Calibration windows and after-hours approvals shifted. A stale agent books an instrument outside the allowed window.",
+      map: "Relevant to: EHS · lab ops · regulated R&D",
+      naive: {
+        steps: [
+          ["Read case", "After-hours HPLC request"],
+          ["Grab policy", "Old access matrix without new gate"],
+          ["Decide", "Auto-approve reservation"],
+        ],
+        result: "FAIL · safety / access violation",
+        good: false,
+      },
+      aware: {
+        steps: [
+          ["Read case", "After-hours HPLC request"],
+          ["Resolve version", "Loads active lab policy + calibration check"],
+          ["Decide", "Require supervisor approval"],
+        ],
+        result: "PASS · blocked until approval",
+        good: true,
+      },
+    },
+    ai: {
+      name: "AI governance",
+      title: "Approved-model list was updated",
+      body: "External API vendors got restricted. Yesterday’s agent still calls a banned model endpoint.",
+      map: "Relevant to: AI platform · security · GRC",
+      naive: {
+        steps: [
+          ["Read case", "Summarize sensitive customer notes"],
+          ["Grab policy", "Cached ‘any approved LLM’ guidance"],
+          ["Decide", "Call external vendor API"],
+        ],
+        result: "FAIL · compliance incident",
+        good: false,
+      },
+      aware: {
+        steps: [
+          ["Read case", "Summarize sensitive customer notes"],
+          ["Resolve version", "Checks current approved-model + retention rules"],
+          ["Decide", "Route to internal model + human review"],
+        ],
+        result: "PASS · policy-aligned path",
+        good: true,
+      },
+    },
+  };
+
+  let sceneKey = "ops";
+  let mode = "naive";
+  let running = false;
+  let timers = [];
+
+  const tabs = document.getElementById("tabs");
+  const title = document.getElementById("title");
+  const body = document.getElementById("body");
+  const map = document.getElementById("map");
+  const stepsEl = document.getElementById("steps");
+  const resultEl = document.getElementById("result");
+  const runBtn = document.getElementById("run");
+  const hint = document.getElementById("hint");
+
+  function clearTimers() {
+    timers.forEach(clearTimeout);
+    timers = [];
+  }
+
+  function renderTabs() {
+    tabs.innerHTML = "";
+    Object.keys(SCENES).forEach((key) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = SCENES[key].name;
+      b.className = key === sceneKey ? "active" : "";
+      b.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        sceneKey = key;
+        renderTabs();
+        renderCopy();
+        resetStage();
+      });
+      tabs.appendChild(b);
+    });
+  }
+
+  function renderCopy() {
+    const s = SCENES[sceneKey];
+    title.textContent = s.title;
+    body.textContent = s.body;
+    map.textContent = s.map;
+  }
+
+  function resetStage() {
+    clearTimers();
+    running = false;
+    runBtn.disabled = false;
+    hint.textContent = "Click run to animate the agent path";
+    const path = SCENES[sceneKey][mode];
+    stepsEl.innerHTML = path.steps
+      .map(
+        ([a, b], i) =>
+          `<div class="step" data-i="${i}"><div class="dot"></div><div><strong>${a}</strong><span>${b}</span></div></div>`
+      )
+      .join("");
+    resultEl.className = "result";
+    resultEl.textContent = "Waiting to run…";
+  }
+
+  function setMode(next) {
+    mode = next;
+    document.querySelectorAll(".mode-btn").forEach((b) => {
+      b.classList.toggle("active", b.dataset.mode === mode);
+    });
+    resetStage();
+  }
+
+  function run() {
+    if (running) return;
+    running = true;
+    runBtn.disabled = true;
+    hint.textContent = "Running…";
+    const path = SCENES[sceneKey][mode];
+    const nodes = [...stepsEl.querySelectorAll(".step")];
+    nodes.forEach((n) => n.classList.remove("on", "done", "fail"));
+    resultEl.className = "result";
+    resultEl.textContent = "Tracing decision…";
+
+    path.steps.forEach((_, i) => {
+      timers.push(
+        setTimeout(() => {
+          nodes.forEach((n, j) => {
+            if (j <= i) n.classList.add("on");
+          });
+          nodes[i].classList.add(path.good ? "done" : i === path.steps.length - 1 ? "fail" : "done");
+        }, 450 + i * 550)
+      );
+    });
+
+    timers.push(
+      setTimeout(() => {
+        resultEl.textContent = path.result;
+        resultEl.className = "result " + (path.good ? "good" : "bad");
+        running = false;
+        runBtn.disabled = false;
+        hint.textContent = path.good
+          ? "Version-aware path held the line."
+          : "Naive path used a stale rule — this is the bug companies ship by accident.";
+      }, 450 + path.steps.length * 550)
+    );
+  }
+
+  // Event delegation — reliable even inside iframes
+  document.getElementById("ps-embed").addEventListener("click", (e) => {
+    const modeBtn = e.target.closest(".mode-btn");
+    if (modeBtn) {
+      e.preventDefault();
+      setMode(modeBtn.dataset.mode);
+      return;
+    }
+    if (e.target.id === "run" || e.target.closest("#run")) {
+      e.preventDefault();
+      run();
+    }
+  });
+
+  renderTabs();
+  renderCopy();
+  resetStage();
+})();
+  </script>
+</body>
+</html>

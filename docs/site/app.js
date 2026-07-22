@@ -1,36 +1,88 @@
 const SCENES = {
   ops: {
     kicker: "Ops / supply chain",
-    title: "Materials receiving policy just got stricter",
-    body: "Last month: release if the COA is present. This month: dual approval + quarantine if temperature logs are incomplete. An agent trained on last month’s SOP will “helpfully” release inventory that should be held — expensive and unsafe.",
-    map: "Maps to: warehouse ops · quality · ERP / WMS copilots",
+    title: "Receiving SOP got stricter this quarter",
+    body: "Old rule: release if COA exists. New rule: quarantine + dual approval when temperature logs are incomplete. Stale agents still rubber-stamp releases.",
+    map: "Relevant to: warehouse ops · quality · ERP / WMS copilots",
+    naive: {
+      steps: [
+        ["Read case", "Inbound lot, missing continuous temp log"],
+        ["Grab policy", "Uses last year’s PDF excerpt (v1.0)"],
+        ["Decide", "Approve release into inventory"],
+      ],
+      result: "FAIL · unsafe release against current SOP",
+      good: false,
+    },
+    aware: {
+      steps: [
+        ["Read case", "Inbound lot, missing continuous temp log"],
+        ["Resolve version", "Selects policy effective at event time (v2.0)"],
+        ["Decide", "Quarantine + request dual approval"],
+      ],
+      result: "PASS · held safely under current SOP",
+      good: true,
+    },
   },
   lab: {
     kicker: "Lab / safety",
     title: "Instrument access rules changed overnight",
-    body: "Calibration windows, after-hours restrictions, and supervisor approvals shift between policy versions. A stale agent books the wrong instrument slot or skips a failed QC gate — the kind of miss safety teams lose sleep over.",
-    map: "Maps to: EHS · lab ops · regulated R&D environments",
+    body: "Calibration windows and after-hours approvals shifted. A stale agent books an instrument outside the allowed window.",
+    map: "Relevant to: EHS · lab ops · regulated R&D",
+    naive: {
+      steps: [
+        ["Read case", "After-hours HPLC request"],
+        ["Grab policy", "Old access matrix without new gate"],
+        ["Decide", "Auto-approve reservation"],
+      ],
+      result: "FAIL · safety / access violation",
+      good: false,
+    },
+    aware: {
+      steps: [
+        ["Read case", "After-hours HPLC request"],
+        ["Resolve version", "Loads active lab policy + calibration check"],
+        ["Decide", "Require supervisor approval"],
+      ],
+      result: "PASS · blocked until approval",
+      good: true,
+    },
   },
   ai: {
-    kicker: "AI / data governance",
-    title: "Approved-model and data-handling rules update",
-    body: "External APIs get blocked, retention rules tighten, high-impact actions need a human. Yesterday’s agent happily calls a banned vendor model. Today that is a compliance incident.",
-    map: "Maps to: AI platform · security · legal / GRC copilots",
+    kicker: "AI governance",
+    title: "Approved-model list was updated",
+    body: "External API vendors got restricted. Yesterday’s agent still calls a banned model endpoint.",
+    map: "Relevant to: AI platform · security · GRC",
+    naive: {
+      steps: [
+        ["Read case", "Summarize sensitive customer notes"],
+        ["Grab policy", "Cached ‘any approved LLM’ guidance"],
+        ["Decide", "Call external vendor API"],
+      ],
+      result: "FAIL · compliance incident",
+      good: false,
+    },
+    aware: {
+      steps: [
+        ["Read case", "Summarize sensitive customer notes"],
+        ["Resolve version", "Checks current approved-model + retention rules"],
+        ["Decide", "Route to internal model + human review"],
+      ],
+      result: "PASS · policy-aligned path",
+      good: true,
+    },
   },
 };
 
-const MODES = {
-  naive: {
-    source: "Stale PDF excerpt from last year’s training pack",
-    action: "Approve release",
-    outcome: "Policy miss · unsafe release",
-  },
-  aware: {
-    source: "Policy version effective at the event timestamp",
-    action: "Quarantine + request dual approval",
-    outcome: "Aligned with current SOP · safe hold",
-  },
-};
+let sceneKey = "ops";
+let mode = "naive";
+let running = false;
+let timers = [];
+let userTouched = false;
+
+function clearTimers() {
+  timers.forEach(clearTimeout);
+  timers = [];
+}
 
 function renderImpact(card) {
   const root = document.getElementById("impact-grid");
@@ -41,10 +93,7 @@ function renderImpact(card) {
     {
       value: (byLabel["RAG task success"] || {}).value || "0.75",
       label: "Higher task success with version-aware RAG",
-      detail: `up from ${(byLabel["RAG task success"] || {}).detail || "baseline 0.58"}`.replace(
-        /^up from vs /,
-        "up from "
-      ),
+      detail: ((byLabel["RAG task success"] || {}).detail || "vs baseline 0.58").replace(/^vs /, "up from "),
     },
     {
       value: (byLabel["Stale@5 (date-filtered)"] || {}).value || "0.00",
@@ -62,200 +111,177 @@ function renderImpact(card) {
       detail: "120+ executable agent cases",
     },
   ];
-  // Fix first detail if we have the vs baseline string
-  if (byLabel["RAG task success"] && byLabel["RAG task success"].detail) {
-    items[0].detail = byLabel["RAG task success"].detail.replace(/^vs /, "up from ");
-  }
-  root.innerHTML = "";
-  for (const h of items) {
-    const el = document.createElement("article");
-    el.className = "impact-item";
-    el.innerHTML =
-      `<div class="value">${h.value}</div>` +
-      `<div class="label">${h.label}</div>` +
-      `<div class="detail">${h.detail || ""}</div>`;
-    root.appendChild(el);
-  }
+  root.innerHTML = items
+    .map(
+      (h) =>
+        `<article class="impact-item"><div class="value">${h.value}</div><div class="label">${h.label}</div><div class="detail">${h.detail}</div></article>`
+    )
+    .join("");
   const disc = document.getElementById("disclaimer");
   if (disc) {
     disc.textContent =
-      "Synthetic environment with measured smoke artifacts. Built to show evaluation + agent-systems craft for hiring — not a claim of production deployment or frontier-scale training.";
+      "Synthetic environment with measured smoke artifacts — built for hiring portfolio demos, not as a production deployment claim.";
   }
+}
+
+function renderTabs() {
+  const tabs = document.getElementById("tabs");
+  tabs.innerHTML = "";
+  Object.keys(SCENES).forEach((key) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "tab" + (key === sceneKey ? " is-active" : "");
+    btn.dataset.scene = key;
+    btn.textContent = SCENES[key].kicker;
+    tabs.appendChild(btn);
+  });
+}
+
+function renderCopy() {
+  const s = SCENES[sceneKey];
+  document.getElementById("scene-kicker").textContent = s.kicker;
+  document.getElementById("scene-title").textContent = s.title;
+  document.getElementById("scene-body").textContent = s.body;
+  document.getElementById("scene-map").textContent = s.map;
+  document.querySelectorAll(".mode-btn").forEach((b) => {
+    b.classList.toggle("is-active", b.dataset.mode === mode);
+  });
+}
+
+function resetTrace() {
+  clearTimers();
+  running = false;
+  const runBtn = document.getElementById("run-btn");
+  if (runBtn) runBtn.disabled = false;
+  const hint = document.getElementById("run-hint");
+  if (hint) hint.textContent = "You’ll see each step animate";
+  const path = SCENES[sceneKey][mode];
+  const steps = document.getElementById("steps");
+  steps.innerHTML = path.steps
+    .map(
+      ([a, b], i) =>
+        `<div class="step" data-i="${i}"><div class="dot"></div><div><strong>${a}</strong><span>${b}</span></div></div>`
+    )
+    .join("");
+  const result = document.getElementById("trace-result");
+  result.className = "trace-result";
+  result.textContent = "Waiting to run…";
+}
+
+function runDecision() {
+  if (running) return;
+  userTouched = true;
+  running = true;
+  const runBtn = document.getElementById("run-btn");
+  runBtn.disabled = true;
+  document.getElementById("run-hint").textContent = "Running…";
+  const path = SCENES[sceneKey][mode];
+  const nodes = [...document.querySelectorAll("#steps .step")];
+  nodes.forEach((n) => n.classList.remove("on", "done", "fail"));
+  const result = document.getElementById("trace-result");
+  result.className = "trace-result";
+  result.textContent = "Tracing decision…";
+
+  path.steps.forEach((_, i) => {
+    timers.push(
+      setTimeout(() => {
+        nodes.forEach((n, j) => {
+          if (j <= i) n.classList.add("on");
+        });
+        nodes[i].classList.add(path.good ? "done" : i === path.steps.length - 1 ? "fail" : "done");
+      }, 400 + i * 520)
+    );
+  });
+
+  timers.push(
+    setTimeout(() => {
+      result.textContent = path.result;
+      result.className = "trace-result " + (path.good ? "good" : "bad");
+      running = false;
+      runBtn.disabled = false;
+      document.getElementById("run-hint").textContent = path.good
+        ? "Version-aware path held the line."
+        : "Naive path used a stale rule — common production bug.";
+    }, 400 + path.steps.length * 520)
+  );
 }
 
 function setScene(key) {
-  const scene = SCENES[key];
-  if (!scene) return;
-  const board = document.getElementById("scenario-board");
-  const copy = board.querySelector(".scene-copy");
-  copy.style.animation = "none";
-  // retrigger
-  void copy.offsetWidth;
-  copy.style.animation = "";
-  document.getElementById("scene-kicker").textContent = scene.kicker;
-  document.getElementById("scene-title").textContent = scene.title;
-  document.getElementById("scene-body").textContent = scene.body;
-  document.getElementById("scene-map").textContent = scene.map;
-  document.querySelectorAll(".tab").forEach((btn) => {
-    const on = btn.dataset.scene === key;
-    btn.classList.toggle("is-active", on);
-    btn.setAttribute("aria-selected", on ? "true" : "false");
-  });
+  if (!SCENES[key]) return;
+  sceneKey = key;
+  renderTabs();
+  renderCopy();
+  resetTrace();
 }
 
-function setMode(mode) {
-  const stage = document.getElementById("decision-stage");
-  const data = MODES[mode];
-  if (!stage || !data) return;
-  stage.classList.add("is-flipping");
-  document.querySelectorAll(".mode-btn").forEach((btn) => {
-    btn.classList.toggle("is-active", btn.dataset.mode === mode);
-  });
-  setTimeout(() => {
-    stage.dataset.mode = mode;
-    document.getElementById("dec-source").textContent = data.source;
-    document.getElementById("dec-action").textContent = data.action;
-    document.getElementById("dec-outcome").textContent = data.outcome;
-    stage.classList.remove("is-flipping");
-  }, 160);
+function setMode(next) {
+  mode = next;
+  renderCopy();
+  resetTrace();
 }
 
-function wireInteractions() {
-  document.querySelectorAll(".tab").forEach((btn) => {
-    btn.addEventListener("click", () => setScene(btn.dataset.scene));
+function wireDemo() {
+  const root = document.getElementById("demo-root");
+  if (!root) return;
+
+  // Event delegation — clicks always work
+  root.addEventListener("click", (e) => {
+    const tab = e.target.closest(".tab");
+    if (tab && tab.dataset.scene) {
+      e.preventDefault();
+      userTouched = true;
+      setScene(tab.dataset.scene);
+      return;
+    }
+    const modeBtn = e.target.closest(".mode-btn");
+    if (modeBtn && modeBtn.dataset.mode) {
+      e.preventDefault();
+      userTouched = true;
+      setMode(modeBtn.dataset.mode);
+      return;
+    }
+    if (e.target.closest("#run-btn")) {
+      e.preventDefault();
+      runDecision();
+    }
   });
-  document.querySelectorAll(".mode-btn").forEach((btn) => {
-    btn.addEventListener("click", () => setMode(btn.dataset.mode));
+
+  document.getElementById("copy-embed")?.addEventListener("click", async () => {
+    const text = document.getElementById("embed-code")?.textContent || "";
+    try {
+      await navigator.clipboard.writeText(text);
+      const btn = document.getElementById("copy-embed");
+      btn.textContent = "Copied!";
+      setTimeout(() => {
+        btn.textContent = "Copy embed code";
+      }, 1500);
+    } catch (_) {
+      alert("Copy failed — select the code block manually.");
+    }
   });
-  // Auto-rotate scenes for dynamism
+
+  // Gentle auto-rotate ONLY until user interacts
   const keys = Object.keys(SCENES);
   let i = 0;
   setInterval(() => {
+    if (userTouched || running) return;
     i = (i + 1) % keys.length;
-    // don't fight a focused user on tabs
-    if (document.activeElement && document.activeElement.classList.contains("tab")) return;
     setScene(keys[i]);
-  }, 7000);
-}
-
-async function getJSON(url) {
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) throw new Error(`${url} → ${res.status}`);
-  return res.json();
-}
-
-async function apiAvailable() {
-  try {
-    const res = await fetch("/api/health", { cache: "no-store" });
-    return res.ok;
-  } catch (_) {
-    return false;
-  }
-}
-
-function embeddedExperiments() {
-  return (window.POLICYSHIFT_EXPERIMENTS && window.POLICYSHIFT_EXPERIMENTS.experiments) || [];
-}
-
-function fillExperimentSelect(ids) {
-  const select = document.getElementById("experiment-select");
-  select.innerHTML = "";
-  for (const id of ids) {
-    const opt = document.createElement("option");
-    opt.value = id;
-    opt.textContent = id;
-    select.appendChild(opt);
-  }
-}
-
-function showEmbeddedExperiment(id) {
-  const view = document.getElementById("experiment-view");
-  const trajView = document.getElementById("traj-view");
-  const exp = embeddedExperiments().find((e) => e.id === id);
-  if (!exp) {
-    view.textContent = `No embedded data for ${id}.`;
-    trajView.textContent = "—";
-    return;
-  }
-  const slim = { ...exp };
-  const trajs = slim.sample_trajectories || [];
-  delete slim.sample_trajectories;
-  view.textContent = JSON.stringify(slim, null, 2);
-  trajView.textContent = JSON.stringify(trajs, null, 2);
-}
-
-async function showLiveExperiment(id) {
-  const view = document.getElementById("experiment-view");
-  const trajView = document.getElementById("traj-view");
-  view.textContent = "Loading…";
-  try {
-    const exp = await getJSON(`/api/experiments/${encodeURIComponent(id)}`);
-    const slim = { ...exp };
-    delete slim.preference_explorer;
-    view.textContent = JSON.stringify(slim, null, 2);
-    const traj = await getJSON(
-      `/api/experiments/${encodeURIComponent(id)}/trajectories?limit=3`
-    );
-    trajView.textContent = JSON.stringify(traj.trajectories, null, 2);
-  } catch (err) {
-    const embedded = embeddedExperiments().find((e) => e.id === id);
-    if (embedded) {
-      showEmbeddedExperiment(id);
-      return;
-    }
-    view.textContent = String(err);
-    trajView.textContent = "—";
-  }
-}
-
-async function loadExperiments() {
-  const help = document.getElementById("playback-help");
-  const panel = document.getElementById("playback-panel");
-  const select = document.getElementById("experiment-select");
-  const embedded = embeddedExperiments();
-  const live = await apiAvailable();
-  if (panel) panel.classList.remove("playback-hidden");
-
-  if (live) {
-    try {
-      const data = await getJSON("/api/experiments");
-      const ids = (data.experiments || []).map((e) => e.id);
-      fillExperimentSelect(ids.length ? ids : embedded.map((e) => e.id));
-      select.onchange = () =>
-        ids.length ? showLiveExperiment(select.value) : showEmbeddedExperiment(select.value);
-      if (select.value) {
-        if (ids.length) await showLiveExperiment(select.value);
-        else showEmbeddedExperiment(select.value);
-      }
-      return;
-    } catch (_) {
-      /* fall through */
-    }
-  }
-
-  if (embedded.length) {
-    if (help) help.textContent = "Embedded experiment snapshots from measured smoke runs.";
-    fillExperimentSelect(embedded.map((e) => e.id));
-    select.onchange = () => showEmbeddedExperiment(select.value);
-    showEmbeddedExperiment(select.value);
-    return;
-  }
-  if (panel) panel.classList.add("playback-hidden");
+  }, 9000);
 }
 
 async function boot() {
-  wireInteractions();
-  setScene("ops");
-  setMode("naive");
-  const card = window.POLICYSHIFT_CARD;
-  renderImpact(card);
+  renderTabs();
+  renderCopy();
+  resetTrace();
+  wireDemo();
+  renderImpact(window.POLICYSHIFT_CARD);
   try {
-    const live = await getJSON("/api/portfolio");
-    renderImpact(live);
+    const res = await fetch("/api/portfolio", { cache: "no-store" });
+    if (res.ok) renderImpact(await res.json());
   } catch (_) {
-    /* embedded card is enough */
+    /* static hosting is fine */
   }
-  await loadExperiments();
 }
 
 boot();

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PolicyShift — agents that keep up when company rules change</title>
-  <meta name="description" content="Portfolio project: teach AI agents to follow changing enterprise policies — version-aware retrieval, evaluation, and post-training, with measured results." />
+  <meta name="description" content="Interactive portfolio demo: AI agents under changing enterprise policies — ops, lab safety, AI governance." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -15,10 +15,9 @@
   <header class="site-header">
     <p class="brand">PolicyShift</p>
     <nav>
-      <a href="#why">Why it matters</a>
-      <a href="#demo">Demo</a>
+      <a href="#demo">Interactive demo</a>
       <a href="#impact">Impact</a>
-      <a href="#skills">Skills</a>
+      <a href="#embed">Embed</a>
       <a href="https://github.com/ishikanahar/policyshift" target="_blank" rel="noreferrer">GitHub</a>
     </nav>
   </header>
@@ -27,151 +26,108 @@
     <section class="hero">
       <h1 class="brand-hero">PolicyShift</h1>
       <p class="lede">
-        When your company’s SOPs, safety rules, or AI policies update next quarter —
-        can your agents still do the right thing?
+        When your company’s SOPs change next quarter — can your AI agents still do the right thing?
       </p>
       <div class="cta-row">
-        <a class="cta" href="#why">See the business problem</a>
-        <a class="cta ghost" href="https://github.com/ishikanahar/policyshift" target="_blank" rel="noreferrer">View code</a>
-      </div>
-    </section>
-
-    <section id="why" class="panel">
-      <h2>Why a recruiter / hiring team should care</h2>
-      <p class="support">
-        This isn’t a toy chatbot. It’s a full evaluation + training loop for
-        <strong>tool-using agents under changing rules</strong> — the same failure mode
-        that shows up in ops, compliance, support, and internal AI copilots.
-      </p>
-
-      <div class="scenario-stage">
-        <div class="scenario-tabs" role="tablist" aria-label="Industry scenarios">
-          <button type="button" class="tab is-active" data-scene="ops" role="tab" aria-selected="true">Ops / supply chain</button>
-          <button type="button" class="tab" data-scene="lab" role="tab" aria-selected="false">Lab / safety</button>
-          <button type="button" class="tab" data-scene="ai" role="tab" aria-selected="false">AI governance</button>
-        </div>
-
-        <div class="scenario-board" id="scenario-board">
-          <div class="scene-copy">
-            <p class="scene-kicker" id="scene-kicker">Ops example</p>
-            <h3 id="scene-title">Materials receiving policy just got stricter</h3>
-            <p id="scene-body">
-              Last month: release if the COA is present. This month: dual approval + quarantine
-              if temperature logs are incomplete. An agent trained on last month’s SOP will
-              “helpfully” release inventory that should be held — expensive and unsafe.
-            </p>
-            <p class="scene-map" id="scene-map">Maps to: warehouse ops, quality, ERP copilots</p>
-          </div>
-          <div class="scene-visual" aria-hidden="true">
-            <div class="policy-chip stale" id="chip-stale">v1.0 · outdated</div>
-            <div class="policy-chip current" id="chip-current">v2.0 · effective now</div>
-            <div class="agent-pulse" id="agent-pulse">
-              <span class="pulse-ring"></span>
-              <span class="pulse-label">Agent decision</span>
-            </div>
-          </div>
-        </div>
+        <a class="cta" href="#demo">Try the interactive demo</a>
+        <a class="cta ghost" href="./embed.html" target="_blank" rel="noreferrer">Open embeddable widget</a>
       </div>
     </section>
 
     <section id="demo" class="panel">
-      <h2>Watch the failure mode</h2>
+      <h2>Interactive demo</h2>
       <p class="support">
-        Toggle between a naive agent and a version-aware path. Same case — different outcome.
+        Click an industry, pick naive vs version-aware, then hit <strong>Run</strong>.
+        This is the failure mode behind ops, safety, and AI-governance copilots.
       </p>
 
-      <div class="toggle-row">
-        <button type="button" class="mode-btn is-active" data-mode="naive" id="btn-naive">Naive path</button>
-        <button type="button" class="mode-btn" data-mode="aware" id="btn-aware">Version-aware path</button>
-      </div>
+      <div class="demo-shell" id="demo-root">
+        <p class="tiny-label">Industry</p>
+        <div class="scenario-tabs" id="tabs" role="tablist"></div>
 
-      <div class="decision-stage" id="decision-stage" data-mode="naive">
-        <div class="decision-col">
-          <p class="col-label">What the agent uses</p>
-          <p class="col-main" id="dec-source">Stale PDF excerpt from last year’s training pack</p>
+        <div class="scenario-board">
+          <div class="scene-copy">
+            <p class="scene-kicker" id="scene-kicker">—</p>
+            <h3 id="scene-title">—</h3>
+            <p id="scene-body">—</p>
+            <p class="scene-map" id="scene-map">—</p>
+            <div class="toggle-row" style="margin-top:1rem">
+              <button type="button" class="mode-btn is-active" data-mode="naive">Naive agent</button>
+              <button type="button" class="mode-btn" data-mode="aware">Version-aware agent</button>
+            </div>
+            <div class="cta-row" style="margin-top:0.85rem;animation:none">
+              <button type="button" class="cta" id="run-btn">Run decision →</button>
+              <span class="run-hint" id="run-hint">You’ll see each step animate</span>
+            </div>
+          </div>
+          <div class="trace-stage" aria-live="polite">
+            <p class="tiny-label">Decision trace</p>
+            <div id="steps"></div>
+            <div class="trace-result" id="trace-result">Waiting to run…</div>
+          </div>
         </div>
-        <div class="decision-col">
-          <p class="col-label">Action</p>
-          <p class="col-main" id="dec-action">Approve release</p>
-        </div>
-        <div class="decision-col outcome" id="dec-outcome-wrap">
-          <p class="col-label">Outcome</p>
-          <p class="col-main" id="dec-outcome">Policy miss · unsafe release</p>
-        </div>
-      </div>
-
-      <div class="flow-strip" aria-hidden="true">
-        <span>Case arrives</span>
-        <span class="flow-arrow">→</span>
-        <span>Pick policy version by date</span>
-        <span class="flow-arrow">→</span>
-        <span>Call tools + evidence</span>
-        <span class="flow-arrow">→</span>
-        <span>Verifier scores result</span>
       </div>
     </section>
 
     <section id="impact" class="panel">
-      <h2>Measured impact (smoke runs)</h2>
-      <p class="support">Real numbers from executed experiments — framed the way a hiring manager reads them.</p>
-      <div class="impact-grid" id="impact-grid">
-        <!-- filled by JS -->
-      </div>
+      <h2>Measured impact</h2>
+      <p class="support">From real smoke experiments — the kind of numbers you can put next to a portfolio link.</p>
+      <div class="impact-grid" id="impact-grid"></div>
       <p class="disclaimer" id="disclaimer"></p>
     </section>
 
     <section id="skills" class="panel">
-      <h2>What this shows I can do for your team</h2>
+      <h2>What this shows for hiring</h2>
       <div class="skills-rail">
         <article>
-          <h3>Agent evaluation</h3>
-          <p>Build executable test beds (tools, verifiers, failure taxonomies) so “it works” means measurable, not vibes.</p>
+          <h3>Agent evaluation systems</h3>
+          <p>Tools, verifiers, failure taxonomies — so “it works” is measurable.</p>
         </article>
         <article>
-          <h3>RAG that respects time</h3>
-          <p>Date-filtered retrieval cut stale@5 from <strong>0.45 → 0.00</strong> in smoke — directly relevant to compliance and SOP search.</p>
+          <h3>Time-aware RAG</h3>
+          <p>Cut stale retrieval @5 from 0.45 → 0.00 in smoke. Directly relevant to SOP / compliance search.</p>
         </article>
         <article>
-          <h3>Post-training loops</h3>
-          <p>Wire teacher trajectories, preference pairs (current vs stale), and budgeted labeling — the plumbing behind production fine-tunes.</p>
+          <h3>Post-training plumbing</h3>
+          <p>Teacher trajectories, preference pairs, labeling budgets — the loop behind production fine-tunes.</p>
         </article>
         <article>
-          <h3>Shipping discipline</h3>
-          <p>Tests, artifact export, public demo, honest limitations. No fake SOTA claims.</p>
+          <h3>Ship + explain</h3>
+          <p>Tests, artifacts, public demo, honest limits. No fake SOTA.</p>
         </article>
-      </div>
-      <div class="hire-cta">
-        <a class="cta" href="https://github.com/ishikanahar/policyshift" target="_blank" rel="noreferrer">Explore the repo</a>
-        <a class="cta ghost" href="#playback">Peek at experiment artifacts</a>
       </div>
     </section>
 
-    <section id="playback" class="panel quiet">
-      <h2>Artifact playback</h2>
-      <p class="support" id="playback-help">Sample outputs from real runs (for technical reviewers).</p>
-      <div id="playback-panel" class="playback-hidden">
-        <label class="field">
-          Experiment
-          <select id="experiment-select"></select>
-        </label>
-        <pre id="experiment-view" class="code-block">—</pre>
-        <h3>Sample trajectories</h3>
-        <pre id="traj-view" class="code-block">—</pre>
+    <section id="embed" class="panel">
+      <h2>Embed this on your site</h2>
+      <p class="support">Drop this iframe into a portfolio / personal site. Self-contained interactive widget.</p>
+      <pre class="code-block embed-code" id="embed-code">&lt;iframe
+  src="https://ishikanahar.github.io/policyshift/embed.html"
+  title="PolicyShift interactive demo"
+  style="width:100%;height:720px;border:0;border-radius:4px;"
+  loading="lazy"
+  allow="clipboard-write"
+&gt;&lt;/iframe&gt;</pre>
+      <div class="cta-row" style="animation:none">
+        <a class="cta" href="./embed.html" target="_blank" rel="noreferrer">Open widget fullscreen</a>
+        <button type="button" class="cta ghost" id="copy-embed">Copy embed code</button>
       </div>
-      <!-- keep hidden hooks for old JS -->
-      <div id="highlights" class="visually-hidden" aria-hidden="true"></div>
-      <ul id="methods" class="visually-hidden" aria-hidden="true"></ul>
+      <iframe
+        class="embed-preview"
+        src="./embed.html"
+        title="PolicyShift embed preview"
+        loading="lazy"
+      ></iframe>
     </section>
   </main>
 
   <footer>
     <p>
-      Built as a hiring portfolio + research sandbox · Apache-2.0 ·
+      Hiring portfolio project · Apache-2.0 ·
       <a href="https://github.com/ishikanahar/policyshift">GitHub</a>
     </p>
   </footer>
   <script src="./data.js"></script>
-  <script src="./experiments.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
