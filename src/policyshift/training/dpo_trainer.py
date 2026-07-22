@@ -278,24 +278,36 @@ def _run_full_trl_dpo(cfg: DPOTrainConfig, rows: list[dict[str, Any]]) -> dict[s
             for r in rows
         ]
     )
-    args = DPOConfig(
-        output_dir=cfg.output_dir,
-        max_steps=cfg.max_steps,
-        per_device_train_batch_size=cfg.per_device_train_batch_size,
-        learning_rate=cfg.learning_rate,
-        beta=cfg.beta,
-        logging_steps=1,
-        report_to=[],
-        max_length=cfg.max_seq_length,
-        max_prompt_length=cfg.max_seq_length // 2,
-    )
-    trainer = DPOTrainer(
-        model=model,
-        ref_model=ref_model,
-        args=args,
-        train_dataset=ds,
-        processing_class=tokenizer,
-    )
+    # TRL DPOConfig kwargs vary by version — only pass supported fields.
+    import inspect
+
+    cfg_kwargs: dict[str, Any] = {
+        "output_dir": cfg.output_dir,
+        "max_steps": cfg.max_steps,
+        "per_device_train_batch_size": cfg.per_device_train_batch_size,
+        "learning_rate": cfg.learning_rate,
+        "beta": cfg.beta,
+        "logging_steps": 1,
+        "report_to": [],
+        "max_length": cfg.max_seq_length,
+        "max_prompt_length": cfg.max_seq_length // 2,
+        "remove_unused_columns": False,
+    }
+    supported = set(inspect.signature(DPOConfig.__init__).parameters)
+    cfg_kwargs = {k: v for k, v in cfg_kwargs.items() if k in supported}
+    args = DPOConfig(**cfg_kwargs)
+
+    trainer_kwargs: dict[str, Any] = {
+        "model": model,
+        "ref_model": ref_model,
+        "args": args,
+        "train_dataset": ds,
+        "processing_class": tokenizer,
+        "tokenizer": tokenizer,
+    }
+    trainer_supported = set(inspect.signature(DPOTrainer.__init__).parameters)
+    trainer_kwargs = {k: v for k, v in trainer_kwargs.items() if k in trainer_supported}
+    trainer = DPOTrainer(**trainer_kwargs)
     started = time.perf_counter()
     train_result = trainer.train()
     elapsed = time.perf_counter() - started
