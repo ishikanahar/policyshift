@@ -19,12 +19,15 @@ Don’t mirror Cohere’s product surface. Show you independently identified a h
 - Distillation quality beyond smoke/replay
 - That PolicyShift is “like Cohere North / Command”
 
-## After a real `run_shift_experiment.py --no-smoke` (+ LoRA tool-loop eval)
+## After real Colab LoRA (2026-07-22) — verified
 
-Use only numbers from `artifacts/experiments/shift-study/summary.json`:
+- I fine-tuned Qwen2.5-0.5B-Instruct with LoRA SFT (30 steps, final loss 1.891) and ran TRL DPO (30 steps) on PolicyShift preference pairs on a Colab T4, with saved adapters under `artifacts/experiments/sft-qwen05b` and `dpo-qwen05b`.
+- Details and limits: `docs/REAL_TRAINING.md`.
 
-- I fine-tuned and preference-optimized an open-weight language model on versioned enterprise policies, evaluating generalization across a held-out policy shift against baseline and version-aware RAG agents.
-- I compared Base / RAG / SFT / SFT+RAG / DPO / DPO+RAG on the same v2.0 cases with deterministic verifiers and PSRS; [paste PSRS + unsafe + stale rates].
-- I published leakage-tested datasets, configs, seeds, hardware, and learning curves — no fabricated metrics.
+## Still pending for the full Cohere study claim
 
-Full copy kit: `docs/STAND_OUT_FOR_COHERE.md`
+- Held-out v2.0 comparative eval (Base / RAG / SFT / DPO ± RAG) from LoRA tool-loop traces
+- Version-filtered train split + leakage-gated report as the primary table
+- Ablations / multi-seed / continual adaptation
+
+Until then, do **not** claim the full “best safety–freshness under policy shift” result.
