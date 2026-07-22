@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PolicyShift</title>
+  <title>PolicyShift — continual post-training under evolving policies</title>
+  <meta name="description" content="PolicyShift is a synthetic research benchmark for teaching tool-using agents to follow versioned enterprise policies as they change over time." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet" />
@@ -14,6 +15,8 @@
   <header class="site-header">
     <p class="brand">PolicyShift</p>
     <nav>
+      <a href="#problem">Why</a>
+      <a href="#system">System</a>
       <a href="#results">Results</a>
       <a href="#playback">Playback</a>
       <a href="https://github.com/ishikanahar/policyshift" target="_blank" rel="noreferrer">GitHub</a>
@@ -23,10 +26,119 @@
   <main>
     <section class="hero">
       <h1 class="brand-hero">PolicyShift</h1>
-      <p class="lede" id="subtitle">Continual post-training for agents under evolving enterprise policies.</p>
+      <p class="lede" id="subtitle">
+        A research benchmark for teaching tool-using agents to follow enterprise policies
+        that change over time — without clinging to stale rules.
+      </p>
       <div class="cta-row">
-        <a class="cta" href="https://github.com/ishikanahar/policyshift" target="_blank" rel="noreferrer">View repository</a>
-        <a class="cta ghost" href="#results">See results</a>
+        <a class="cta" href="#system">See how it works</a>
+        <a class="cta ghost" href="https://github.com/ishikanahar/policyshift" target="_blank" rel="noreferrer">Repository</a>
+      </div>
+    </section>
+
+    <section id="problem" class="panel">
+      <h2>The problem</h2>
+      <p class="support">
+        Real organizations rewrite procedures: materials receiving, lab access, AI/data governance.
+        An agent must apply the policy that was <em>valid at the event time</em>, adapt when versions
+        update, keep still-valid skills, and refuse unsafe shortcuts.
+      </p>
+      <div class="split-copy">
+        <p>
+          Retrieval alone is not enough — an agent can fetch the right document and still act on an
+          outdated clause. PolicyShift builds a fully synthetic, executable environment so we can
+          compare post-training methods under matched evaluation, with deterministic verifiers
+          instead of hand-wavy LLM-as-judge scores.
+        </p>
+        <p>
+          Three domains × three versions (1.0 → 1.1 → 2.0) × 120+ tool-use cases. Methods under study:
+          baseline, version-aware RAG, distillation, DPO, continual replay, TeacherBudget selection,
+          and verifier-guided RL (CPU smoke paths by default; optional GPU LoRA documented).
+        </p>
+      </div>
+    </section>
+
+    <section id="system" class="panel">
+      <h2>System structure</h2>
+      <p class="support">How a case moves through the stack — from versioned policy to scored trajectory.</p>
+
+      <figure class="diagram" aria-label="PolicyShift pipeline diagram">
+        <svg viewBox="0 0 960 220" role="img" class="diagram-svg">
+          <defs>
+            <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#0b6e4f" />
+            </marker>
+            <linearGradient id="nodeFill" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#f7fafc" />
+              <stop offset="100%" stop-color="#dce8e2" />
+            </linearGradient>
+          </defs>
+          <!-- nodes -->
+          <g class="flow-node" transform="translate(20,60)">
+            <rect width="150" height="90" rx="4" fill="url(#nodeFill)" stroke="#0b6e4f" stroke-width="1.5"/>
+            <text x="75" y="38" text-anchor="middle" class="node-title">Versioned policies</text>
+            <text x="75" y="58" text-anchor="middle" class="node-sub">3 domains · v1→v2</text>
+          </g>
+          <g class="flow-node" transform="translate(210,60)">
+            <rect width="150" height="90" rx="4" fill="url(#nodeFill)" stroke="#0b6e4f" stroke-width="1.5"/>
+            <text x="75" y="38" text-anchor="middle" class="node-title">Case + tools</text>
+            <text x="75" y="58" text-anchor="middle" class="node-sub">event · evidence</text>
+          </g>
+          <g class="flow-node" transform="translate(400,60)">
+            <rect width="150" height="90" rx="4" fill="url(#nodeFill)" stroke="#0b6e4f" stroke-width="1.5"/>
+            <text x="75" y="38" text-anchor="middle" class="node-title">Retriever / agent</text>
+            <text x="75" y="58" text-anchor="middle" class="node-sub">RAG · SFT · DPO · RL</text>
+          </g>
+          <g class="flow-node" transform="translate(590,60)">
+            <rect width="150" height="90" rx="4" fill="url(#nodeFill)" stroke="#0b6e4f" stroke-width="1.5"/>
+            <text x="75" y="38" text-anchor="middle" class="node-title">Verifiers</text>
+            <text x="75" y="58" text-anchor="middle" class="node-sub">fresh · safe · grounded</text>
+          </g>
+          <g class="flow-node" transform="translate(780,60)">
+            <rect width="150" height="90" rx="4" fill="url(#nodeFill)" stroke="#c45c26" stroke-width="1.8"/>
+            <text x="75" y="38" text-anchor="middle" class="node-title">Artifacts</text>
+            <text x="75" y="58" text-anchor="middle" class="node-sub">metrics · traces</text>
+          </g>
+          <!-- arrows -->
+          <line x1="170" y1="105" x2="208" y2="105" stroke="#0b6e4f" stroke-width="2" marker-end="url(#arrow)"/>
+          <line x1="360" y1="105" x2="398" y2="105" stroke="#0b6e4f" stroke-width="2" marker-end="url(#arrow)"/>
+          <line x1="550" y1="105" x2="588" y2="105" stroke="#0b6e4f" stroke-width="2" marker-end="url(#arrow)"/>
+          <line x1="740" y1="105" x2="778" y2="105" stroke="#0b6e4f" stroke-width="2" marker-end="url(#arrow)"/>
+        </svg>
+        <figcaption>End-to-end loop: policies and cases feed agents; verifiers score trajectories into inspectable artifacts.</figcaption>
+      </figure>
+
+      <h3 class="subhead">Policy versions over time</h3>
+      <figure class="diagram timeline-wrap" aria-label="Policy version timeline">
+        <svg viewBox="0 0 960 140" class="diagram-svg">
+          <line x1="80" y1="70" x2="880" y2="70" stroke="#1a2332" stroke-opacity="0.25" stroke-width="3"/>
+          <g transform="translate(140,40)">
+            <circle cx="0" cy="30" r="10" fill="#0b6e4f"/>
+            <text x="0" y="8" text-anchor="middle" class="node-title">v1.0</text>
+            <text x="0" y="68" text-anchor="middle" class="node-sub">baseline rules</text>
+          </g>
+          <g transform="translate(400,40)">
+            <circle cx="0" cy="30" r="10" fill="#0b6e4f"/>
+            <text x="0" y="8" text-anchor="middle" class="node-title">v1.1</text>
+            <text x="0" y="68" text-anchor="middle" class="node-sub">patches · exceptions</text>
+          </g>
+          <g transform="translate(700,40)">
+            <circle cx="0" cy="30" r="12" fill="#c45c26"/>
+            <text x="0" y="8" text-anchor="middle" class="node-title">v2.0</text>
+            <text x="0" y="68" text-anchor="middle" class="node-sub">stricter / new gates</text>
+          </g>
+          <text x="480" y="125" text-anchor="middle" class="node-sub">Agents must pick the version effective at the case timestamp — not the newest forever.</text>
+        </svg>
+      </figure>
+
+      <h3 class="subhead">Method stack</h3>
+      <div class="method-rail" role="list">
+        <div class="method-step" role="listitem"><span class="step-num">C0</span><strong>Baseline</strong><span>no retrieval</span></div>
+        <div class="method-step" role="listitem"><span class="step-num">C1</span><strong>RAG</strong><span>date-filtered retrieve</span></div>
+        <div class="method-step" role="listitem"><span class="step-num">C2–3</span><strong>Continual</strong><span>sequential ± replay</span></div>
+        <div class="method-step" role="listitem"><span class="step-num">C4</span><strong>Distill</strong><span>teacher trajectories</span></div>
+        <div class="method-step" role="listitem"><span class="step-num">C5</span><strong>DPO</strong><span>current vs stale pairs</span></div>
+        <div class="method-step" role="listitem"><span class="step-num">C6</span><strong>RL</strong><span>verifier rewards</span></div>
       </div>
     </section>
 
@@ -41,9 +153,7 @@
     <section id="playback" class="panel">
       <h2>Artifact playback</h2>
       <p class="support" id="playback-help">
-        For live trajectory playback, run locally:
-        <code>pip install -e ".[api]" && python scripts/serve_playback.py</code>
-        then open <code>http://127.0.0.1:8000</code>.
+        Inspect exported experiment summaries and sample trajectories from real smoke runs.
       </p>
       <div id="playback-panel" class="playback-hidden">
         <label class="field">
@@ -58,7 +168,11 @@
   </main>
 
   <footer>
-    <p>Synthetic research benchmark · Apache-2.0 · <a href="https://github.com/ishikanahar/policyshift">github.com/ishikanahar/policyshift</a> · <a href="https://ishikanahar.github.io/policyshift/">Live demo</a></p>
+    <p>
+      Synthetic research benchmark · Apache-2.0 ·
+      <a href="https://github.com/ishikanahar/policyshift">GitHub</a> ·
+      <a href="https://ishikanahar.github.io/policyshift/">Live site</a>
+    </p>
   </footer>
   <script src="./data.js"></script>
   <script src="./experiments.js"></script>
