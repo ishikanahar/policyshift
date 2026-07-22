@@ -33,7 +33,12 @@ def main() -> None:
     train_file = args.train_file or Path(raw.get("train_file", "data/preferences/smoke/dpo_train.jsonl"))
     output_dir = args.output_dir or Path(raw.get("output_dir", "artifacts/experiments/dpo-smoke/checkpoints"))
     smoke = args.smoke if args.smoke is not None else bool(raw.get("smoke", True))
-    max_steps = args.max_steps if args.max_steps is not None else int(raw.get("max_steps", 2))
+    if args.max_steps is not None:
+        max_steps: int | None = args.max_steps
+    elif "max_steps" in raw:
+        max_steps = None if raw.get("max_steps") in (None, "null") else int(raw["max_steps"])
+    else:
+        max_steps = 2 if smoke else None
 
     from policyshift.training.version_filters import parse_policy_versions
 
@@ -45,18 +50,33 @@ def main() -> None:
             "or scripts/train_dpo_smoke.py for the end-to-end Phase 4 smoke."
         )
 
+    sft_adapter = raw.get("sft_adapter_path")
+    if not smoke and not sft_adapter:
+        raise SystemExit(
+            "Full DPO requires sft_adapter_path in the config "
+            "(initialize from SFT checkpoint, not raw Qwen)."
+        )
+
     metrics = run_dpo(
         DPOTrainConfig(
             output_dir=str(output_dir),
             train_file=str(train_file),
             smoke=smoke,
             max_steps=max_steps,
+            num_train_epochs=float(raw.get("num_train_epochs", 1.0)),
             learning_rate=float(raw.get("learning_rate", 1e-3)),
             beta=float(raw.get("beta", 0.1)),
             seed=int(raw.get("seed", 42)),
             model_name_or_path=str(raw.get("model_name_or_path", "smoke-tiny-dpo")),
+            sft_adapter_path=str(sft_adapter) if sft_adapter else None,
             notes=str(raw.get("notes", "")),
             policy_versions=policy_versions,
+            max_seq_length=int(raw.get("max_seq_length", raw.get("max_length", 1536))),
+            max_prompt_length=int(raw.get("max_prompt_length", 1152)),
+            max_completion_length=int(raw.get("max_completion_length", 384)),
+            lora_r=int(raw.get("lora_r", 4)),
+            lora_alpha=int(raw.get("lora_alpha", 8)),
+            per_device_train_batch_size=int(raw.get("per_device_train_batch_size", 1)),
         )
     )
     print(metrics)

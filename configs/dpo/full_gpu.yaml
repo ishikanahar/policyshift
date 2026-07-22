@@ -1,16 +1,27 @@
 # Full GPU DPO via TRL + PEFT LoRA (optional; not required for smoke tests)
+# Initializes from the SFT LoRA checkpoint — not raw Qwen base weights.
 smoke: false
 seed: 42
-max_steps: 50
+num_train_epochs: 1
+# Leave max_steps unset/null so one full epoch over all training pairs is used.
+max_steps: null
 learning_rate: 5.0e-5
 beta: 0.1
 model_name_or_path: Qwen/Qwen2.5-0.5B-Instruct
+sft_adapter_path: artifacts/experiments/sft-qwen05b/checkpoints/adapter
 train_file: data/full/dpo/dpo_train.jsonl
 output_dir: artifacts/experiments/dpo-qwen05b/checkpoints
 per_device_train_batch_size: 1
 lora_r: 8
 lora_alpha: 16
+# Response-aware budgets (shared with validate_dpo_data / eval inference)
+max_length: 1536
+max_seq_length: 1536
+max_prompt_length: 1152
+max_completion_length: 384
 notes: |
   pip install 'policyshift[training]'
   python scripts/prepare_full_training_data.py --n-cases 80 --out-root data/full
+  python scripts/validate_dpo_data.py
+  python scripts/train_sft.py --config configs/sft/full_gpu.yaml --no-smoke
   python scripts/train_dpo.py --config configs/dpo/full_gpu.yaml --no-smoke

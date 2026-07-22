@@ -181,20 +181,27 @@ def main() -> None:
         )
     )
 
-    # 5) DPO from preference pairs (SFT→DPO pipeline; smoke uses tiny adapter)
+    # 5) DPO from preference pairs (warm-start from SFT adapter when not smoke)
+    sft_adapter = None if smoke else str(art / "sft" / "checkpoints" / "adapter")
+    dpo_max_steps = dpo_cfg.get("max_steps", 2 if smoke else None)
     dpo_metrics = run_dpo(
         DPOTrainConfig(
             output_dir=str(art / "dpo" / "checkpoints"),
             train_file=str(dpo_file),
             smoke=smoke,
-            max_steps=int(dpo_cfg.get("max_steps", 2 if smoke else 150)),
+            max_steps=None if dpo_max_steps in (None, "null") else int(dpo_max_steps),
+            num_train_epochs=float(dpo_cfg.get("num_train_epochs", 1.0)),
             learning_rate=float(dpo_cfg.get("learning_rate", 5e-5)),
             beta=float(dpo_cfg.get("beta", 0.1)),
             lora_r=int(dpo_cfg.get("lora_r", 8)),
             lora_alpha=int(dpo_cfg.get("lora_alpha", 16)),
+            max_seq_length=int(dpo_cfg.get("max_seq_length", dpo_cfg.get("max_length", 1536))),
+            max_prompt_length=int(dpo_cfg.get("max_prompt_length", 1152)),
+            max_completion_length=int(dpo_cfg.get("max_completion_length", 384)),
             policy_versions=train_versions,
             notes=f"shift-dpo train_versions={train_versions}",
             model_name_or_path=("smoke-tiny-dpo" if smoke else model_name),
+            sft_adapter_path=sft_adapter,
             seed=seed,
         )
     )

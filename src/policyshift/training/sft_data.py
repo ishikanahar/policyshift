@@ -46,10 +46,11 @@ def trajectory_to_completion(trajectory: AgentTrajectory) -> str:
                 "citations": action.policy_citations,
             }
         )
+    # Preference-critical fields first so DPO completion end-truncation keeps the signal.
     payload = {
-        "steps": steps,
         "final_resolution": trajectory.final_answer,
         "cited_policy_versions": trajectory.cited_policy_versions,
+        "steps": steps,
     }
     return json.dumps(payload, indent=2, default=str)
 

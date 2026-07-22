@@ -24,17 +24,37 @@ class DPOTrainConfig:
     output_dir: str
     train_file: str
     model_name_or_path: str = "smoke-tiny-dpo"
+    # Full DPO must warm-start from an SFT LoRA adapter (not raw base Qwen).
+    sft_adapter_path: str | None = None
     smoke: bool = True
-    max_steps: int = 2
+    max_steps: int | None = 2
+    num_train_epochs: float = 1.0
     learning_rate: float = 1e-3
     beta: float = 0.1
     seed: int = 42
     lora_r: int = 4
     lora_alpha: int = 8
-    max_seq_length: int = 256
+    max_seq_length: int = 1536
+    max_prompt_length: int = 1152
+    max_completion_length: int = 384
     per_device_train_batch_size: int = 1
     notes: str = ""
     policy_versions: list[str] | None = None
+    skip_data_validation: bool = False
+
+
+def resolve_sft_adapter_path(path: str | Path) -> Path:
+    """Accept either the adapter dir or its parent checkpoints/ folder."""
+    root = Path(path)
+    if (root / "adapter_config.json").exists():
+        return root
+    nested = root / "adapter"
+    if (nested / "adapter_config.json").exists():
+        return nested
+    raise FileNotFoundError(
+        f"No PEFT adapter_config.json under {root} or {nested}. "
+        "Train SFT first (configs/sft/full_gpu.yaml)."
+    )
 
 
 def load_dpo_rows(
@@ -84,9 +104,10 @@ def _smoke_dpo_torch(cfg: DPOTrainConfig, rows: list[dict[str, Any]]) -> dict[st
     losses: list[float] = []
     started = time.perf_counter()
     step = 0
-    while step < cfg.max_steps:
+    max_steps = int(cfg.max_steps or 2)
+    while step < max_steps:
         for row in rows:
-            if step >= cfg.max_steps:
+            if step >= max_steps:
                 break
             prompt = row["prompt"]
             chosen = _text_vec(prompt + "\n" + row["chosen"], dim)
@@ -136,7 +157,7 @@ def _smoke_dpo_numpy(cfg: DPOTrainConfig, rows: list[dict[str, Any]]) -> dict[st
     w = rng.normal(0, 0.01, size=(dim,))
     losses: list[float] = []
     started = time.perf_counter()
-    for step in range(cfg.max_steps):
+    for step in range(int(cfg.max_steps or 2)):
         row = rows[step % len(rows)]
         c = np.array(_text_vec(row["prompt"] + "\n" + row["chosen"], dim))
         r = np.array(_text_vec(row["prompt"] + "\n" + row["rejected"], dim))
@@ -230,33 +251,20 @@ def run_dpo(cfg: DPOTrainConfig) -> dict[str, Any]:
     return metrics
 
 
-def _run_full_trl_dpo(cfg: DPOTrainConfig, rows: list[dict[str, Any]]) -> dict[str, Any]:
-    """Full TRL DPO path (requires GPU for practical Qwen runs)."""
-    try:
-        from datasets import Dataset
-        from peft import LoraConfig, TaskType, get_peft_model
-        from transformers import AutoModelForCausalLM, AutoTokenizer
-        from trl import DPOConfig, DPOTrainer
-    except ImportError as exc:  # pragma: no cover
-        raise ImportError(
-            "Full DPO requires transformers/peft/trl/datasets. "
-            "Install with: pip install 'policyshift[training]'"
-        ) from exc
+def _load_sft_peft_pair(
+    *,
+    base_model: str,
+    sft_adapter: Path,
+):
+    """Load trainable policy + frozen reference, both initialized from the SFT adapter."""
+    from peft import PeftModel
+    from transformers import AutoModelForCausalLM
 
-    tokenizer = AutoTokenizer.from_pretrained(cfg.model_name_or_path)
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForCausalLM.from_pretrained(cfg.model_name_or_path)
-    ref_model = AutoModelForCausalLM.from_pretrained(cfg.model_name_or_path)
-    lora = LoraConfig(
-        task_type=TaskType.CAUSAL_LM,
-        r=cfg.lora_r,
-        lora_alpha=cfg.lora_alpha,
-        lora_dropout=0.05,
-        target_modules=["q_proj", "v_proj"],
-    )
     try:
-        model = get_peft_model(model, lora)
+        policy_base = AutoModelForCausalLM.from_pretrained(base_model)
+        ref_base = AutoModelForCausalLM.from_pretrained(base_model)
+        model = PeftModel.from_pretrained(policy_base, str(sft_adapter), is_trainable=True)
+        ref_model = PeftModel.from_pretrained(ref_base, str(sft_adapter), is_trainable=False)
     except ImportError as exc:
         if "torchao" in str(exc).lower():
             raise ImportError(
@@ -267,32 +275,106 @@ def _run_full_trl_dpo(cfg: DPOTrainConfig, rows: list[dict[str, Any]]) -> dict[s
                 "then re-run training."
             ) from exc
         raise
+    ref_model.eval()
+    for param in ref_model.parameters():
+        param.requires_grad = False
+    return model, ref_model
 
-    ds = Dataset.from_list(
-        [
-            {
-                "prompt": r["prompt"],
-                "chosen": r["chosen"],
-                "rejected": r["rejected"],
-            }
-            for r in rows
-        ]
+
+def _run_full_trl_dpo(cfg: DPOTrainConfig, rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Full TRL DPO path (requires GPU for practical Qwen runs).
+
+    Initializes policy + reference from the SFT LoRA checkpoint (not raw base Qwen).
+    """
+    try:
+        from datasets import Dataset
+        from transformers import AutoTokenizer
+        from trl import DPOConfig, DPOTrainer
+    except ImportError as exc:  # pragma: no cover
+        raise ImportError(
+            "Full DPO requires transformers/peft/trl/datasets. "
+            "Install with: pip install 'policyshift[training]'"
+        ) from exc
+
+    from policyshift.training.dpo_format import (
+        DPOBudgetConfig,
+        budget_dpo_pair,
+        validate_budgeted_pairs,
     )
-    # TRL DPOConfig kwargs vary by version — only pass supported fields.
+
+    if not cfg.sft_adapter_path:
+        raise ValueError(
+            "Full DPO requires sft_adapter_path (SFT LoRA checkpoint). "
+            "Refusing to initialize from raw base Qwen. "
+            "Set sft_adapter_path in configs/dpo/full_gpu.yaml."
+        )
+    sft_adapter = resolve_sft_adapter_path(cfg.sft_adapter_path)
+
+    print(
+        "DPO init:\n"
+        f"  policy/ref from SFT adapter: {sft_adapter}\n"
+        f"  base model: {cfg.model_name_or_path}\n"
+        f"  epochs: {cfg.num_train_epochs}\n"
+        f"  training pairs: {len(rows)}\n"
+        f"  sequence budgets: {cfg.max_seq_length} / {cfg.max_prompt_length} / {cfg.max_completion_length}"
+    )
+
+    # Tokenizer-only first: fail closed on data before loading model weights.
+    tokenizer = AutoTokenizer.from_pretrained(cfg.model_name_or_path)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+
+    budget = DPOBudgetConfig(
+        max_length=cfg.max_seq_length,
+        max_prompt_length=cfg.max_prompt_length,
+        max_completion_length=cfg.max_completion_length,
+    )
+    validation_path = ensure_dir(Path(cfg.output_dir)) / "dpo_validation.json"
+    if not cfg.skip_data_validation:
+        report = validate_budgeted_pairs(rows, tokenizer, budget)
+        compact = {k: v for k, v in report.items() if k != "rows"}
+        write_json(validation_path, compact)
+        if not report["passed"]:
+            raise ValueError(
+                "DPO data validation failed before model loading. "
+                f"See {validation_path}. "
+                f"retain_pct={report['percentage_retaining_chosen_rejected_difference']:.2f} "
+                f"raw_identical={report['raw_identical_pairs']} "
+                f"empty_loss_masks={report['empty_loss_mask_pairs']}"
+            )
+
+    budgeted_rows = [
+        budget_dpo_pair(tokenizer, r["prompt"], r["chosen"], r["rejected"], budget)
+        for r in rows
+    ]
+    ds = Dataset.from_list([b.to_conversational() for b in budgeted_rows])
+
+    model, ref_model = _load_sft_peft_pair(
+        base_model=cfg.model_name_or_path,
+        sft_adapter=sft_adapter,
+    )
+
+    # Rows are pre-budgeted; TRL max_* must not re-apply keep_start on concat.
     import inspect
 
     cfg_kwargs: dict[str, Any] = {
         "output_dir": cfg.output_dir,
-        "max_steps": cfg.max_steps,
+        "num_train_epochs": cfg.num_train_epochs,
         "per_device_train_batch_size": cfg.per_device_train_batch_size,
         "learning_rate": cfg.learning_rate,
         "beta": cfg.beta,
         "logging_steps": 1,
         "report_to": [],
         "max_length": cfg.max_seq_length,
-        "max_prompt_length": cfg.max_seq_length // 2,
+        "max_prompt_length": cfg.max_prompt_length,
+        "truncation_mode": "keep_start",
         "remove_unused_columns": False,
+        "save_strategy": "epoch",
+        "logging_first_step": True,
     }
+    # Prefer epoch-based training; only honor max_steps when explicitly > 0.
+    if cfg.max_steps is not None and int(cfg.max_steps) > 0:
+        cfg_kwargs["max_steps"] = int(cfg.max_steps)
     supported = set(inspect.signature(DPOConfig.__init__).parameters)
     cfg_kwargs = {k: v for k, v in cfg_kwargs.items() if k in supported}
     args = DPOConfig(**cfg_kwargs)
@@ -314,13 +396,23 @@ def _run_full_trl_dpo(cfg: DPOTrainConfig, rows: list[dict[str, Any]]) -> dict[s
     adapter_dir = str(ensure_dir(Path(cfg.output_dir) / "adapter"))
     model.save_pretrained(adapter_dir)
     tokenizer.save_pretrained(adapter_dir)
+    global_step = int(getattr(train_result, "global_step", 0) or 0)
     return {
         "backend": "trl-dpo-lora",
         "checkpoint": adapter_dir,
+        "init_from": str(sft_adapter),
+        "n_train_pairs": len(rows),
+        "num_train_epochs": cfg.num_train_epochs,
         "train_loss": [float(getattr(train_result, "training_loss", 0.0) or 0.0)],
         "final_loss": float(getattr(train_result, "training_loss", 0.0) or 0.0),
-        "steps": int(cfg.max_steps),
+        "steps": global_step,
         "elapsed_sec": elapsed,
         "peak_memory_mb": None,
         "beta": cfg.beta,
+        "budget": {
+            "max_length": cfg.max_seq_length,
+            "max_prompt_length": cfg.max_prompt_length,
+            "max_completion_length": cfg.max_completion_length,
+        },
+        "validation_report": str(validation_path),
     }
