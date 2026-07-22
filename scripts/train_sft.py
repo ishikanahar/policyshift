@@ -18,6 +18,12 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--smoke", action=argparse.BooleanOptionalAction, default=None)
     parser.add_argument("--max-steps", type=int, default=None)
+    parser.add_argument(
+        "--policy-versions",
+        type=str,
+        default=None,
+        help="Comma-separated versions to keep from train JSONL (e.g. 1.0,1.1).",
+    )
     args = parser.parse_args()
 
     cfg_raw = load_yaml(args.config) if args.config.exists() else {}
@@ -29,6 +35,12 @@ def main() -> None:
     )
     smoke = bool(cfg_raw.get("smoke", True)) if args.smoke is None else bool(args.smoke)
     max_steps = args.max_steps if args.max_steps is not None else int(cfg_raw.get("max_steps", 2))
+
+    from policyshift.training.version_filters import parse_policy_versions
+
+    policy_versions = parse_policy_versions(
+        args.policy_versions or cfg_raw.get("policy_versions")
+    )
 
     if not train_file.exists():
         raise SystemExit(
@@ -48,6 +60,7 @@ def main() -> None:
             lora_r=int(cfg_raw.get("lora_r", 4)),
             lora_alpha=int(cfg_raw.get("lora_alpha", 8)),
             notes=str(cfg_raw.get("notes", "")),
+            policy_versions=policy_versions,
         )
     )
     print(json.dumps(metrics, indent=2, default=str))

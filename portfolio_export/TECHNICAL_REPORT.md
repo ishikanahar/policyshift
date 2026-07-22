@@ -1,6 +1,6 @@
 # PolicyShift Technical Report (Smoke Results)
 
-_Generated: 2026-07-21T20:05:48.562227+00:00_
+_Generated: 2026-07-22T02:31:31.561991+00:00_
 
 ## Abstract
 
@@ -50,11 +50,11 @@ Retrieval stale@5: naive **0.45** → date-filtered **0.00**.
 
 ## Resume language (copy)
 
-- Built PolicyShift, a synthetic continual post-training benchmark for tool-using agents across 3 enterprise domains and 3 sequential policy versions (120+ executable cases with deterministic verifiers).
-- Compared baseline, version-aware RAG, distillation, and DPO smoke pipelines under matched evaluation: RAG lifted task success from 0.58 to 0.75 and cut retrieval stale@5 from 0.45 to 0.00.
-- Implemented preference-pair construction (120 pairs: current-vs-stale, grounded-vs-unsupported, safe-vs-unsafe) and CPU smoke DPO/SFT training with inspectable artifacts (not claiming Qwen-scale LoRA/TRL quality).
-- Evaluated TeacherBudget selection under a fixed teacher-call cap, reducing teacher calls by 80.0% vs label-all while measuring student task success and coverage (combined strategy, smoke oracle teachers).
-- Shipped FastAPI artifact playback + portfolio export with measured metrics only (no fabricated results); full suite of unit/integration tests for Phases 1–7 smoke paths.
+- I built PolicyShift, a synthetic **agent-evaluation** environment for tool-using agents under evolving enterprise policies (3 domains × 3 policy versions, 120+ executable cases, deterministic verifiers). Unique wedge: SOP/policy **version shift** — not a Cohere product clone. Preference-data / smoke SFT–DPO plumbing exists; smoke students may replay teachers and are **not** claimed as LLM post-training research.
+- Compared baseline vs version-aware RAG under matched smoke evaluation: task success 0.58 → 0.75; retrieval stale@5 0.45 → 0.00.
+- Implemented preference-pair construction (120 pairs: current-vs-stale, grounded-vs-unsupported, safe-vs-unsafe), a **v1.0+v1.1 → v2.0** train/eval shift split (`scripts/run_shift_experiment.py`), and CPU smoke DPO/SFT adapters with inspectable artifacts.
+- Evaluated TeacherBudget selection under a fixed teacher-call cap, reducing teacher calls by 80.0% vs label-all at matched smoke success (oracle teachers).
+- Shipped FastAPI artifact playback + portfolio export with measured metrics only; unit/integration tests. See `docs/COHERE_EXPERIMENT.md` for the GPU LoRA milestone.
 
 ## Limitations
 

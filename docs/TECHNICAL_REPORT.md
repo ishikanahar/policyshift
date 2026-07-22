@@ -1,6 +1,6 @@
 # PolicyShift Technical Report (Smoke Results)
 
-_Generated: 2026-07-21T19:56:03.462055+00:00_
+_Generated: 2026-07-22T02:31:31.561991+00:00_
 
 ## Abstract
 
@@ -29,14 +29,32 @@ Retrieval stale@5: naive **0.45** → date-filtered **0.00**.
 
 ## Phases 5–7
 
-_Run `scripts/run_phase5_smoke.py` to populate._
+### Continual learning
+
+- `none`: forgetting=0.0, backward_transfer=0.0, mean_stale=0.0
+- `random`: forgetting=0.0, backward_transfer=0.0, mean_stale=0.0
+- `version_aware`: forgetting=0.0, backward_transfer=0.0, mean_stale=0.0
+
+### TeacherBudget
+
+- Label-all task success: 0.75
+- Combined task success: 0.75
+- Teacher call reduction: 80.0%
+
+### RL smoke
+
+- `baseline` task_success=0.5833333333333334 unsafe=0.16666666666666666
+- `rag` task_success=0.75 unsafe=0.0
+- `rl` task_success=1.0 unsafe=0.0
+- Reward-hacking flag: False
 
 ## Resume language (copy)
 
-- Built PolicyShift, a synthetic continual post-training benchmark for tool-using agents across 3 enterprise domains and 3 sequential policy versions (120+ executable cases with deterministic verifiers).
-- Compared baseline, version-aware RAG, distillation, and DPO smoke pipelines under matched evaluation: RAG lifted task success from 0.58 to 0.75 and cut retrieval stale@5 from 0.45 to 0.00.
-- Implemented preference-pair construction (120 pairs: current-vs-stale, grounded-vs-unsupported, safe-vs-unsafe) and CPU smoke DPO/SFT training with inspectable artifacts (not claiming Qwen-scale LoRA/TRL quality).
-- Shipped FastAPI artifact playback + portfolio export with measured metrics only (no fabricated results); full suite of unit/integration tests for Phases 1–7 smoke paths.
+- I built PolicyShift, a synthetic **agent-evaluation** environment for tool-using agents under evolving enterprise policies (3 domains × 3 policy versions, 120+ executable cases, deterministic verifiers). Unique wedge: SOP/policy **version shift** — not a Cohere product clone. Preference-data / smoke SFT–DPO plumbing exists; smoke students may replay teachers and are **not** claimed as LLM post-training research.
+- Compared baseline vs version-aware RAG under matched smoke evaluation: task success 0.58 → 0.75; retrieval stale@5 0.45 → 0.00.
+- Implemented preference-pair construction (120 pairs: current-vs-stale, grounded-vs-unsupported, safe-vs-unsafe), a **v1.0+v1.1 → v2.0** train/eval shift split (`scripts/run_shift_experiment.py`), and CPU smoke DPO/SFT adapters with inspectable artifacts.
+- Evaluated TeacherBudget selection under a fixed teacher-call cap, reducing teacher calls by 80.0% vs label-all at matched smoke success (oracle teachers).
+- Shipped FastAPI artifact playback + portfolio export with measured metrics only; unit/integration tests. See `docs/COHERE_EXPERIMENT.md` for the GPU LoRA milestone.
 
 ## Limitations
 

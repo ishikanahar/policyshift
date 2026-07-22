@@ -37,18 +37,32 @@ class TrainConfig:
     fp16: bool = False
     use_peft: bool = True
     notes: str = ""
+    policy_versions: list[str] | None = None
 
 
-def load_train_texts(train_file: str | Path, limit: int | None = None) -> list[str]:
-    texts: list[str] = []
+def load_train_texts(
+    train_file: str | Path,
+    limit: int | None = None,
+    *,
+    policy_versions: list[str] | None = None,
+) -> list[str]:
+    from policyshift.training.version_filters import filter_rows_by_versions
+
+    rows: list[dict[str, Any]] = []
     with Path(train_file).open("r", encoding="utf-8") as handle:
         for line in handle:
-            row = json.loads(line)
-            texts.append(row.get("text") or row["messages"][-1]["content"])
-            if limit is not None and len(texts) >= limit:
-                break
+            rows.append(json.loads(line))
+    rows = filter_rows_by_versions(rows, policy_versions)
+    texts: list[str] = []
+    for row in rows:
+        texts.append(row.get("text") or row["messages"][-1]["content"])
+        if limit is not None and len(texts) >= limit:
+            break
     if not texts:
-        raise ValueError(f"No training examples in {train_file}")
+        raise ValueError(
+            f"No training examples in {train_file}"
+            + (f" for policy_versions={policy_versions}" if policy_versions else "")
+        )
     return texts
 
 
@@ -220,7 +234,11 @@ def load_checkpoint(path: str | Path) -> dict[str, Any]:
 
 def run_sft(cfg: TrainConfig) -> dict[str, Any]:
     """Run smoke or (future) full SFT. Always writes metrics + checkpoint metadata."""
-    texts = load_train_texts(cfg.train_file, limit=32 if cfg.smoke else None)
+    texts = load_train_texts(
+        cfg.train_file,
+        limit=32 if cfg.smoke else None,
+        policy_versions=cfg.policy_versions,
+    )
     out = ensure_dir(cfg.output_dir)
     write_json(out / "train_config.json", asdict(cfg))
 
@@ -240,6 +258,7 @@ def run_sft(cfg: TrainConfig) -> dict[str, Any]:
         "status": "completed",
         "smoke": cfg.smoke,
         "model_name_or_path": cfg.model_name_or_path,
+        "policy_versions": cfg.policy_versions,
         "n_train_texts": len(texts),
         "training": result,
         "checkpoint_load": {

@@ -62,6 +62,8 @@ def build_sft_example(case: CaseEvent, trajectory: AgentTrajectory) -> dict[str,
         "domain": case.domain.value,
         "difficulty": case.difficulty.value,
         "split": case.split.value,
+        "policy_version": case.expected_policy_version,
+        "expected_policy_id": case.expected_policy_id,
         "messages": [
             {"role": "system", "content": "Follow evolving enterprise policies with tools."},
             {"role": "user", "content": case_to_prompt(case)},
@@ -76,6 +78,7 @@ def build_sft_example(case: CaseEvent, trajectory: AgentTrajectory) -> dict[str,
             "teacher_model_id": trajectory.model_id,
             "success": trajectory.success,
             "total_reward": trajectory.total_reward,
+            "policy_version": case.expected_policy_version,
         },
     }
 
@@ -104,6 +107,9 @@ def write_sft_dataset(examples: list[dict[str, Any]], out_dir: str | Path) -> di
                 "n_examples": len(examples),
                 "domains": sorted({e["domain"] for e in examples}),
                 "splits": sorted({e["split"] for e in examples}),
+                "policy_versions": sorted(
+                    {e["policy_version"] for e in examples if e.get("policy_version")}
+                ),
             },
         ),
     }

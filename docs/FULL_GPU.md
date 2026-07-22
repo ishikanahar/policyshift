@@ -3,6 +3,18 @@
 CPU smoke paths are the default and already produce measured portfolio metrics.
 Use this guide when you have a GPU (Colab Pro / local NVIDIA) and want real Qwen LoRA / TRL runs.
 
+## Policy-shift split (recommended applicant experiment)
+
+```bash
+# Smoke wiring (CPU)
+python scripts/run_shift_experiment.py --smoke
+
+# Real LoRA on GPU
+python scripts/run_shift_experiment.py --no-smoke
+```
+
+Trains on policy **1.0+1.1**, evaluates baseline/RAG on held-out **2.0**, runs DPO on train-version preference pairs. See `docs/COHERE_EXPERIMENT.md`.
+
 ## Install
 
 ```bash

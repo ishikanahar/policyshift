@@ -228,6 +228,8 @@ def pairs_to_dpo_examples(
             {
                 "id": pair.pair_id,
                 "case_id": pair.case_id,
+                "policy_version": case.expected_policy_version,
+                "expected_policy_id": case.expected_policy_id,
                 "source": pair.source.value,
                 "preference_reason": pair.preference_reason,
                 "reward_margin": pair.reward_margin,

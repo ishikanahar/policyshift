@@ -26,6 +26,7 @@ def trajectory_metrics(case: CaseEvent, trajectory: AgentTrajectory) -> dict[str
         "domain": case.domain.value,
         "difficulty": case.difficulty.value,
         "split": case.split.value,
+        "policy_version": case.expected_policy_version,
         "template_id": case.template_id,
         "model_id": trajectory.model_id,
         "training_method": trajectory.training_method.value,

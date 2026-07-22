@@ -34,17 +34,29 @@ class DPOTrainConfig:
     max_seq_length: int = 256
     per_device_train_batch_size: int = 1
     notes: str = ""
+    policy_versions: list[str] | None = None
 
 
-def load_dpo_rows(train_file: str | Path, limit: int | None = None) -> list[dict[str, Any]]:
+def load_dpo_rows(
+    train_file: str | Path,
+    limit: int | None = None,
+    *,
+    policy_versions: list[str] | None = None,
+) -> list[dict[str, Any]]:
+    from policyshift.training.version_filters import filter_rows_by_versions
+
     rows: list[dict[str, Any]] = []
     with Path(train_file).open("r", encoding="utf-8") as handle:
         for line in handle:
             rows.append(json.loads(line))
-            if limit is not None and len(rows) >= limit:
-                break
+    rows = filter_rows_by_versions(rows, policy_versions)
+    if limit is not None:
+        rows = rows[:limit]
     if not rows:
-        raise ValueError(f"No DPO examples in {train_file}")
+        raise ValueError(
+            f"No DPO examples in {train_file}"
+            + (f" for policy_versions={policy_versions}" if policy_versions else "")
+        )
     return rows
 
 
@@ -175,7 +187,11 @@ def load_dpo_checkpoint(path: str | Path) -> dict[str, Any]:
 
 def run_dpo(cfg: DPOTrainConfig) -> dict[str, Any]:
     """Run smoke or (documented) full DPO. Always writes metrics + checkpoint metadata."""
-    rows = load_dpo_rows(cfg.train_file, limit=64 if cfg.smoke else None)
+    rows = load_dpo_rows(
+        cfg.train_file,
+        limit=64 if cfg.smoke else None,
+        policy_versions=cfg.policy_versions,
+    )
     out = ensure_dir(cfg.output_dir)
     write_json(out / "train_config.json", asdict(cfg))
 
@@ -194,6 +210,7 @@ def run_dpo(cfg: DPOTrainConfig) -> dict[str, Any]:
         "status": "completed",
         "smoke": cfg.smoke,
         "model_name_or_path": cfg.model_name_or_path,
+        "policy_versions": cfg.policy_versions,
         "n_train_pairs": len(rows),
         "training": result,
         "checkpoint_load": {

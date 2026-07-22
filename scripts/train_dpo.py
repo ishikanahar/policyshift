@@ -17,6 +17,12 @@ def main() -> None:
     parser.add_argument("--train-file", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--smoke", action=argparse.BooleanOptionalAction, default=None)
+    parser.add_argument(
+        "--policy-versions",
+        type=str,
+        default=None,
+        help="Comma-separated versions to keep from DPO JSONL (e.g. 1.0,1.1).",
+    )
     args = parser.parse_args()
 
     raw: dict = {}
@@ -26,6 +32,10 @@ def main() -> None:
     train_file = args.train_file or Path(raw.get("train_file", "data/preferences/smoke/dpo_train.jsonl"))
     output_dir = args.output_dir or Path(raw.get("output_dir", "artifacts/experiments/dpo-smoke/checkpoints"))
     smoke = args.smoke if args.smoke is not None else bool(raw.get("smoke", True))
+
+    from policyshift.training.version_filters import parse_policy_versions
+
+    policy_versions = parse_policy_versions(args.policy_versions or raw.get("policy_versions"))
 
     if not train_file.exists():
         raise SystemExit(
@@ -44,6 +54,7 @@ def main() -> None:
             seed=int(raw.get("seed", 42)),
             model_name_or_path=str(raw.get("model_name_or_path", "smoke-tiny-dpo")),
             notes=str(raw.get("notes", "")),
+            policy_versions=policy_versions,
         )
     )
     print(metrics)

@@ -120,7 +120,7 @@ function renderImpact(card) {
   const disc = document.getElementById("disclaimer");
   if (disc) {
     disc.textContent =
-      "Synthetic environment with measured smoke artifacts — built for hiring portfolio demos, not as a production deployment claim.";
+      "I built this synthetic evaluation environment. Metrics are measured smoke artifacts — not Qwen-scale LoRA/DPO training claims.";
   }
 }
 

@@ -23,8 +23,12 @@ def _select_cases(
     *,
     split: Split | None = None,
     limit: int | None = None,
+    policy_versions: list[str] | None = None,
 ) -> list[CaseEvent]:
     selected = [c for c in cases if split is None or c.split == split]
+    if policy_versions is not None:
+        allowed = set(policy_versions)
+        selected = [c for c in selected if c.expected_policy_version in allowed]
     if limit is not None:
         selected = selected[:limit]
     return selected
