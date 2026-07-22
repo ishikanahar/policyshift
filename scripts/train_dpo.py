@@ -17,6 +17,7 @@ def main() -> None:
     parser.add_argument("--train-file", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--smoke", action=argparse.BooleanOptionalAction, default=None)
+    parser.add_argument("--max-steps", type=int, default=None)
     parser.add_argument(
         "--policy-versions",
         type=str,
@@ -32,6 +33,7 @@ def main() -> None:
     train_file = args.train_file or Path(raw.get("train_file", "data/preferences/smoke/dpo_train.jsonl"))
     output_dir = args.output_dir or Path(raw.get("output_dir", "artifacts/experiments/dpo-smoke/checkpoints"))
     smoke = args.smoke if args.smoke is not None else bool(raw.get("smoke", True))
+    max_steps = args.max_steps if args.max_steps is not None else int(raw.get("max_steps", 2))
 
     from policyshift.training.version_filters import parse_policy_versions
 
@@ -48,7 +50,7 @@ def main() -> None:
             output_dir=str(output_dir),
             train_file=str(train_file),
             smoke=smoke,
-            max_steps=int(raw.get("max_steps", 2)),
+            max_steps=max_steps,
             learning_rate=float(raw.get("learning_rate", 1e-3)),
             beta=float(raw.get("beta", 0.1)),
             seed=int(raw.get("seed", 42)),

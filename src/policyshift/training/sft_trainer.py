@@ -203,18 +203,45 @@ def _smoke_train_numpy(cfg: TrainConfig, texts: list[str]) -> dict[str, Any]:
 
 
 def load_checkpoint(path: str | Path) -> dict[str, Any]:
-    """Load a smoke or torch checkpoint; raises if missing/corrupt."""
+    """Load a smoke, torch, or PEFT adapter checkpoint; raises if missing/corrupt."""
     ckpt = Path(path)
-    if not ckpt.exists():
-        # Allow directory with known filenames
+    if ckpt.is_dir():
+        # PEFT LoRA adapter directory from full GPU runs
+        for name in (
+            "adapter_config.json",
+            "adapter_model.safetensors",
+            "adapter_model.bin",
+            "smoke_adapter.pt",
+            "smoke_adapter.json",
+        ):
+            candidate = ckpt / name
+            if candidate.exists():
+                if name == "adapter_config.json":
+                    payload = json.loads(candidate.read_text(encoding="utf-8"))
+                    return {
+                        "path": str(ckpt),
+                        "format": "peft-adapter",
+                        "keys": list(payload.keys()),
+                        "payload_meta": {
+                            k: payload.get(k)
+                            for k in ("peft_type", "r", "lora_alpha", "base_model_name_or_path")
+                            if k in payload
+                        },
+                    }
+                if name.endswith((".safetensors", ".bin")):
+                    return {
+                        "path": str(ckpt),
+                        "format": "peft-adapter-weights",
+                        "keys": [name],
+                        "payload_meta": {},
+                    }
+                ckpt = candidate
+                break
         if ckpt.is_dir():
-            for name in ("smoke_adapter.pt", "smoke_adapter.json", "adapter_config.json"):
-                candidate = ckpt / name
-                if candidate.exists():
-                    ckpt = candidate
-                    break
-        if not ckpt.exists():
-            raise FileNotFoundError(f"Checkpoint not found: {path}")
+            raise FileNotFoundError(f"Checkpoint directory has no recognized adapter files: {path}")
+
+    if not ckpt.exists():
+        raise FileNotFoundError(f"Checkpoint not found: {path}")
 
     if ckpt.suffix == ".pt":
         import torch
